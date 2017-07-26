@@ -5,6 +5,14 @@ function test() {
 	out = smilesToCarbonSkeleton(smiles);
 	console.log(out);
 	*/
+
+	
+	//FUNCTION: findLongestPath(adjList)
+	var smiles = document.getElementById("SMILES").value;
+	graph = smilesToCarbonSkeleton(smiles);
+	out = findLongestPath(graph);
+	console.log(out);
+
 }
 
 function smilesToCarbonSkeleton(smilesInput) {
@@ -85,6 +93,48 @@ function smilesToCarbonSkeleton(smilesInput) {
 	return adjacencyList;
 }
 
-function longestPath(adjList) {
+function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
+	
+	// ********** NOTE: THIS RETURNS THE LENGTH OF THE PATH. THIS TRANSLATES TO THE NUMBER OF BONDS, NOT NUMBER OF CARBONS ALONG THE PATH. ************
 
+
+	endPts = []; // list of nodes with only one edge
+	for (var i = 0; i < adjList.length; i++) {
+		if (adjList[i].length === 1) {
+			endPts.push(i);
+		}
+	}
+
+	longestPath = 0;
+	for (var i = 0; i < endPts.length; i++) {
+		startPt = endPts[i];
+		pathLengths = new Array(adjList.length).fill(-1);
+		searched = [startPt];
+		distance = 0;
+		pathLengths[startPt] = 0;
+		while (searched.length < adjList.length) {
+			distance++;
+			newNodes = [];
+			for (var j = 0; j < searched.length; j++) {
+				for (var k = 0; k < adjList[searched[j]].length; k++) {
+					h = adjList[searched[j]][k];
+					if (newNodes.indexOf(h) === -1 && searched.indexOf(h) === -1) {
+						newNodes.push(h);
+					}
+					if (pathLengths[h] === -1) {
+						pathLengths[h] = distance;
+					}
+
+				}
+			}
+			searched = searched.concat(newNodes);
+		}
+		longestPath = Math.max(longestPath, getMaxOfArray(pathLengths));
+	}
+
+	return longestPath;
+}
+
+function getMaxOfArray(numArray) {
+	return Math.max.apply(null, numArray);
 }
