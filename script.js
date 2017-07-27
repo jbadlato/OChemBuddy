@@ -1,18 +1,30 @@
 function test() {
-	/* 
+
 	//FUNCTION: smilesToCarbonSkeleton(smilesInput)
 	var smiles = document.getElementById("SMILES").value;
 	out = smilesToCarbonSkeleton(smiles);
 	console.log(out);
-	*/
-
 	
-	//FUNCTION: findLongestPath(adjList)
+	
+	/*//FUNCTION: findLongestPath(adjList)
 	var smiles = document.getElementById("SMILES").value;
 	graph = smilesToCarbonSkeleton(smiles);
 	out = findLongestPath(graph);
 	console.log(out);
+	*/
+}
 
+function xParenth(s) {	
+	// This function replaces segments of a string in between '(' and ')' with '...xxxx...' (Both '(' and ')' are necessary)
+	while (s.indexOf(')') !== -1 && s.indexOf('(') !== -1) { // until there are no more ')'
+		closeP = s.lastIndexOf(')');
+		openP = s.lastIndexOf('(',closeP); //closest '('
+		closeP = s.indexOf(')', openP); //closest ')'. Now have the innermost set of ()
+		x = 'x'.repeat(closeP - openP + 1);
+		replaceThis = s.substring(openP, closeP + 1);
+		s = s.replace(replaceThis, x);
+	}
+	return s;
 }
 
 function smilesToCarbonSkeleton(smilesInput) {
@@ -32,69 +44,84 @@ function smilesToCarbonSkeleton(smilesInput) {
 			carbonIndices.push(i); // Label the carbon & Store its position in the SMILES string
 		}
 	}
-
 	for (var i = 0; i < carbonIndices.length; i++) { // For each iteration, find the adjacencies for the ith carbon.
 		ithCIndex = carbonIndices[i];
-		// *****  Finding the carbon bonded behind *****
+		// -----  Finding the carbon bonded behind -----
 		if (i === 0) {	// If i=0, there is no previous carbon. 
 			// Do nothing.
 		}
-		else if (smilesInput.charAt(ithCIndex-1) !== ')') {	// Not ) --> no branch, need last mentioned carbon.
-			indexOfLastC = smilesInput.lastIndexOf('C', ithCIndex-1);
-			labelOfAdjCarbon = carbonIndices.indexOf(indexOfLastC);
-			adjacencyList[i].push(labelOfAdjCarbon);
-		}
-		else if (smilesInput.charAt(ithCIndex-1) === ')') {	// If previous carbon has branching.  Here we assume that no carbon has >4 bonds
-			branchEnd = carbonIndices[i] - 1;
-			branchBegin = smilesInput.lastIndexOf('(', branchEnd);
-			if (smilesInput.charAt(branchBegin - 1) === ')') { // There is another branch
-				branchEnd = branchBegin - 1;
-				branchBegin = smilesInput.lastIndexOf('(', branchEnd);
-			} 	// There can be no more than two branches in between ith carbon and its prev bonded carbon.
-			if (smilesInput.charAt(branchBegin-1) !== ')') { // Not ) --> no branch, need last mentioned carbon.
-				indexOfLastC = smilesInput.lastIndexOf('C',branchBegin-1);
-				labelOfAdjCarbon = carbonIndices.indexOf(indexOfLastC);
-				adjacencyList[i].push(labelOfAdjCarbon);
-			}
-			else { alert('ERROR 01: Could not construct carbon skeleton.'); }
-		}
-		// *****  Finding the carbon(s) bonded after *****
-		nextCarbon = smilesInput.indexOf('C', ithCIndex+1); // Index of next carbon
-		// **Find Closest Parentheses in either direction**
-		prevOpenParentheses = smilesInput.lastIndexOf('(', ithCIndex);
-		prevCloseParentheses = smilesInput.lastIndexOf(')', ithCIndex);
-		nextOpenParentheses = smilesInput.indexOf('(', ithCIndex);
-		nextCloseParentheses = smilesInput.indexOf(')', ithCIndex);
-		if (nextCarbon === -1) { // Last carbon can't be bonded to anything after it.
-			// Do nothing.
-		}	
-		else if (prevOpenParentheses > prevCloseParentheses && nextCloseParentheses < nextOpenParentheses && nextCloseParentheses < nextCarbon) { // Next carbon is outside of ith carbon's branch. ith carbon is the end of a branch.
-			// Do nothing.
-		}
 		else {
-			labelOfAdjCarbon = carbonIndices.indexOf(nextCarbon); // ith carbon must be bonded to the first carbon after it.
-			adjacencyList[i].push(labelOfAdjCarbon);
+			befiC = smilesInput.substring(0,ithCIndex); // string up to ith C
+			xedOut = xParenth(befiC);
+			adjCIndex = xedOut.lastIndexOf('C');
+			adjCLabel = carbonIndices.indexOf(adjCIndex);
+			adjacencyList[i].push(adjCLabel);
 		}
-		if (smilesInput.charAt(nextCarbon-1) === '(') {
-			branchEnd = smilesInput.indexOf(')', nextCarbon-1);
-			nextCarbon = smilesInput.indexOf('C', branchEnd);
-			labelOfAdjCarbon = carbonIndices.indexOf(nextCarbon);
-			adjacencyList[i].push(labelOfAdjCarbon);
-			if (smilesInput.charAt(nextCarbon-1) === '(') { // Max of three carbons bonded after. This should be the last one.
-				branchEnd = smilesInput.indexOf(')', nextCarbon-1);
-				nexCarbon = smilesInput.indexOf('C', branchEnd);
-				labelOfAdjCarbon = carbonIndices.indexOf(nextCarbon);
-				adjacencyList[i].push(labelOfAdjCarbon);
+
+
+		// -----  Finding the carbon(s) bonded after -----
+		if (i === carbonIndices.length - 1) { // This would be the last carbon. Nothing after it.
+			continue;
+		}
+		else { 
+			// Find C that is not branched:
+			aftiC = smilesInput.substring(ithCIndex+1, smilesInput.length);
+			if (aftiC.indexOf(')') < aftiC.indexOf('C')) { // This is the end of a branch.
+				continue;
+			}
+			xedOut = xParenth(aftiC);
+			unbranchedCIndex = xedOut.indexOf('C');
+			unbranchedCIndex += ithCIndex + 1;
+			unbranchedCLabel = carbonIndices.indexOf(unbranchedCIndex);
+			adjacencyList[i].push(unbranchedCLabel);
+
+			// Find branched connection(s), if they exist: 
+			if (aftiC.indexOf('(') === -1) { // There isn't any branching at all after this carbon, let alone on this carbon.
+				continue;
+			}
+			firstopenP = aftiC.indexOf('(') + ithCIndex + 1;
+			if (firstopenP < unbranchedCIndex) { // This means there is at least one branched connection.
+				firstopenP = aftiC.indexOf('(');
+				branchedCIndex = aftiC.indexOf('C', firstopenP) + ithCIndex + 1;
+				branchedCLabel = carbonIndices.indexOf(branchedCIndex);
+				adjacencyList[i].push(branchedCLabel);
+				// Look for a second branched connection: (There is a max of two for nearly all organic molecules)
+				// Find end of first branch: 
+				openCount = 0;
+				closeCount = 0;
+				for (var j = 0; j < aftiC.length; j++) {
+					if (aftiC.charAt(j) === '(') {
+						openCount++;
+					}
+					if (aftiC.charAt(j) === ')') {
+						closeCount++;
+					}
+					if (openCount === closeCount) {
+						break;	// At the first instance of # of open parentheses equaling # of close parentheses, this is the end of the first branch.
+						// When the loop breaks, j will equal the index of the last close parentheses of the branch.
+					}
+				}
+				branchEnd = j;
+				if (aftiC.indexOf('(', branchEnd) === 1) { // No more branching in the molecule at all.
+					continue;
+				}
+				firstopenP = aftiC.indexOf('(', branchEnd) + ithCIndex + 1;
+				if (firstopenP < unbranchedCIndex) { // This means there is a second branch from ith Carbon.
+					firstopenP = aftiC.indexOf('(', branchEnd);
+					branchedCIndex = aftiC.indexOf('C', firstopenP) + ithCIndex + 1;
+					branchedCLabel = carbonIndices.indexOf(branchedCIndex);
+					adjacencyList[i].push(branchedCLabel);
+				}
 			}
 		}
 	}
-	// *****  Add ring bonds  ***** 
-	// need to add this
+	// -----  Add ring bonds  ----- 
+	// May or may not have to do this here depending on structure of the rest of the program.
 	return adjacencyList;
 }
 
 function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
-	
+
 	// ********** NOTE: THIS RETURNS THE LENGTH OF THE PATH. THIS TRANSLATES TO THE NUMBER OF BONDS, NOT NUMBER OF CARBONS ALONG THE PATH. ************
 
 
