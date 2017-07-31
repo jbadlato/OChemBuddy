@@ -1,5 +1,4 @@
 function test() {
-
 	//FUNCTION: smilesToCarbonSkeleton(smilesInput)
 	var smiles = document.getElementById("SMILES").value;
 	out = smilesToCarbonSkeleton(smiles);
@@ -11,6 +10,12 @@ function test() {
 	graph = smilesToCarbonSkeleton(smiles);
 	out = findLongestPath(graph);
 	console.log(out);
+
+	//FUNCTION: findBranches(skel)
+	var smiles = document.getElementById("SMILES").value;
+	graph = smilesToCarbonSkeleton(smiles);
+	b = findBranches(graph);
+	console.log(b);
 	
 }
 
@@ -48,6 +53,16 @@ function arrayContains(arr1, arr2) { // Returns true if arr1 contains every elem
 		}
 	}
 	return true;
+}
+
+function arrayAdd(arr1, arr2) {	// Creates a new array with all elements of arr1 and arr2, but without repeating any elements.
+	newArr = arr1;
+	for (var i = 0; i < arr2.length; i++) {
+		if (newArr.indexOf(arr2[i]) === -1) {
+			newArr.push(arr2[i]);
+		}
+	}
+	return newArr;
 }
 
 function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
@@ -228,14 +243,55 @@ function smilesToCarbonSkeleton(smilesInput) {
 	return adjacencyList;
 }
 
-function findBranches(skel) {
-	longChain = findLongestPath(skel) + 1;
+function findBranches(skel) { 	
+	// SHOULD TEST THIS FURTHER WITH MORE COMPLICATED BRANCHES
+	backbone = findLongestPath(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
+	allBranches = []; // Will contain all the subgraphs representing branches.
+	for (var i = 0; i < backbone.length; i++) { // Ci is the carbon in the backbone at which we are looking for branches.
+		Ci = backbone[i];
+		adjCs = skel[Ci];
+		if (!arrayContains(backbone, adjCs)) { // If Ci is bonded to a carbon not in the backbone
+			// There is a branch! Let's graph it.
+			for (var j = 0; j < adjCs.length; j++) {
+				Cj = adjCs[j]; // Cj is potentially the start of a branch. (max 2 per Ci)
+				branch = [];	// will contain two elements: 	(1) index of Ci (which is just i), where the branch connects
+							 	//								(2) the graph of the branch. Cj will have index 0.
+				branch.push(i); // where the branch is located on the backbone
+				subgraph = []; // adjacency list for the branch
+				subgraph.push([]); // adjacencies of Cj
+				branchInd = 0; // counter to reindex carbons in branch. Cj has index 0.
+				if (backbone.indexOf(Cj) === -1) { // Now we know Cj is a start of a branch.
+					discovered = [];
+					newNodes = [Ci, Cj];
+					while (newNodes.length !== 0) {
+						discovered = arrayAdd(discovered, newNodes);
+						newNodes = [];
+						for (var k = 1; k < discovered.length; k++) { // Ck is discovered in the branch.
+							Ck = discovered[k];
+							for (var h = 0; h < skel[Ck].length; h++) { // Ch is connected to Ck
+								Ch = skel[Ck][h];
+								if (discovered.indexOf(Ch) === -1) {
+									newNodes.push(Ch);
+									branchInd += 1;
+									subgraph.push([]);
+									subgraph[k-1].push(branchInd);
+									subgraph[branchInd].push(k-1);
+								}
+							}
+						}
+					}
+					branch.push(subgraph);
+					allBranches.push(branch);
+				}
+			}
+		}
+	}
 
+	return allBranches;
 }
 
 function name() {
 	var input = document.getElementById("SMILES").value;
 	skeleton = smilesToCarbonSkeleton(input);
-	longestChain = findLongestPath(skeleton) + 1;
 	
 }
