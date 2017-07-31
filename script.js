@@ -1,5 +1,5 @@
 function test() {
-	//FUNCTION: smilesToCarbonSkeleton(smilesInput)
+	/*//FUNCTION: smilesToCarbonSkeleton(smilesInput)
 	var smiles = document.getElementById("SMILES").value;
 	out = smilesToCarbonSkeleton(smiles);
 	console.log(out);
@@ -17,6 +17,16 @@ function test() {
 	b = findBranches(graph);
 	console.log(b);
 	
+	//FUNCTION: nameBranches(branchGraphs)
+	var smiles = document.getElementById("SMILES").value;
+	graph = smilesToCarbonSkeleton(smiles);
+	b = findBranches(graph);
+	out = nameBranches(b);
+	console.log(out);*/
+
+	//FUNCTION : name();
+	x = name();
+	console.log(x);
 }
 
 var numToPrefix = {
@@ -40,6 +50,19 @@ var numToPrefix = {
 	18: "octadec",
 	19: "nonadec",
 	20: "eicos"
+}
+
+var numToNumTerm = {
+	1: 'mono',
+	2: 'di',
+	3: 'tri',
+	4: 'tetra',
+	5: 'penta',
+	6: 'hexa',
+	7: 'hepta',
+	8: 'octa',
+	9: 'nona',
+	10: 'deca'
 }
 
 function getMaxOfArray(numArray) {
@@ -290,8 +313,70 @@ function findBranches(skel) {
 	return allBranches;
 }
 
+function checkForBranchedBranch(branchGraphs) { // returns true if there are branched branches, returns false otherwise
+	for (var i = 0; i < branchGraphs.length; i++) {
+		subgraph = branchGraphs[i][1];
+		for (var j = 0; j < subgraph.length; j++) {
+			if (subgraph[j].length > 2) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function nameBranches(branchGraphs) {
+	namedBranches = branchGraphs;
+	for (var i = 0; i < branchGraphs.length; i++) {
+		if (!checkForBranchedBranch(branchGraphs)) {
+			namedBranches[i][1] = numToPrefix[branchGraphs[i][1].length] + 'yl';
+		}
+		else {
+			alert('Too many branches. Not currently supported. :(');
+		}
+	}
+	return namedBranches;
+}
+
 function name() {
 	var input = document.getElementById("SMILES").value;
 	skeleton = smilesToCarbonSkeleton(input);
-	
+	backbone = findLongestPath(skeleton);
+	branches = findBranches(skeleton);
+	branches = nameBranches(branches);
+
+	subsTypes = [];
+	subsCount = [];
+	subsPositions = [];
+	for (var i = 0; i < branches.length; i++) {
+		subInd = subsTypes.indexOf(branches[i][1]);
+		if (subInd !== -1) {
+			subsCount[subInd]++;
+			subsPositions[subInd].push(branches[i][0]);
+		}
+		if (subInd === -1) {
+			subsTypes.push(branches[i][1]);
+			subsCount.push(1);
+			subsPositions.push([]);
+			subsPositions[subsPositions.length - 1].push(branches[i][0]);
+		}
+	}
+	copy = subsPositions;
+	subsPositions = new Array(copy.length).fill('');
+	for (var k = 0; k < copy.length; k++) {
+		for (var h = 0; h < copy[k].length; h++) {
+			subsPositions[k] = subsPositions[k] + (copy[k][h]+ 1) + ',';
+		}
+		subsPositions[k] = subsPositions[k].substring(0,subsPositions[k].length - 1);
+	}
+
+
+	output = numToPrefix[backbone.length] + 'ane';
+	for (var j = 0; j < subsTypes.length; j++) { // ****still need to alphabetize these
+		output = '-' + subsPositions[j] + '-' + numToNumTerm[subsCount[j]] + subsTypes[j] + output;
+	}
+	output = output.substring(1,output.length);
+
+
+	return output;
 }
