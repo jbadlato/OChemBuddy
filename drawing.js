@@ -9,7 +9,7 @@ ctx.stroke();*/
 var mousePosStore;
 var mousPos;
 var carbonPositions = [];
-var graph = [];
+var drawnGraph = [];
 
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
@@ -26,14 +26,25 @@ function getDist(pt1, pt2) {
 	return c;
 }
 
-function drawCarbon(p) { // add something to prevent drawing carbons too close to each other
+function drawCarbon(p) { 
+	var minD = 99999999; 
+	var d;
+	for (var i = 0; i < carbonPositions.length; i++) {
+		d = getDist(p, carbonPositions[i]);
+		if (d < minD) {
+			minD = d;
+		}
+	}
+	if (minD < 20) {
+		return false; // don't draw carbons too close to each other.
+	}
 	ctx.moveTo(p.x,p.y);
 	ctx.arc(p.x,p.y,3,0,2*Math.PI);
 	ctx.fillStyle = "#000";
 	ctx.fill();
 	ctx.stroke();
 	carbonPositions.push(p);
-	graph.push([]);
+	drawnGraph.push([]);
 }
 
 function drawBond(start, end) {
@@ -76,8 +87,8 @@ function drawBond(start, end) {
 
 	startInd = carbonPositions.indexOf(startC);
 	endInd = carbonPositions.indexOf(endC);
-	graph[startInd].push(endInd);
-	graph[endInd].push(startInd);
+	drawnGraph[startInd].push(endInd);
+	drawnGraph[endInd].push(startInd);
 	console.log(graph);
 }
 
