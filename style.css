@@ -4,3 +4,10 @@ canvas {
 	margin-right: auto;
 	margin-left: auto;
 }
+
+button {
+	display: block;
+	margin-top: 25px;
+	margin-right: auto;
+	margin-left: auto;
+}

@@ -58,7 +58,6 @@ function drawBond(start, end) {
 			startC = carbonPositions[i];
 		}
 	}
-	console.log(minD);
 	if (minD > 10) {
 		return false; //don't draw bond
 	}
@@ -71,7 +70,6 @@ function drawBond(start, end) {
 			endC = carbonPositions[i];
 		}
 	}
-	console.log(minD);
 	if (minD > 10) {
 		return false; //don't draw bond
 	}
@@ -89,7 +87,6 @@ function drawBond(start, end) {
 	endInd = carbonPositions.indexOf(endC);
 	drawnGraph[startInd].push(endInd);
 	drawnGraph[endInd].push(startInd);
-	console.log(graph);
 }
 
 canvas.addEventListener('mousemove', function(evt) {

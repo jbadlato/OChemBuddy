@@ -26,8 +26,10 @@ function test() {
 
 	//FUNCTION : name();
 	x = name();
-	console.log(x);
+	alert(x);
 }
+
+
 
 var numToPrefix = {
 	1: "meth",
@@ -53,7 +55,7 @@ var numToPrefix = {
 }
 
 var numToNumTerm = {
-	1: 'mono',
+	1: '', // I don't think 'mono' is ever necessary?
 	2: 'di',
 	3: 'tri',
 	4: 'tetra',
@@ -331,7 +333,7 @@ function nameBranches(branchGraphs) {
 		if (!checkForBranchedBranch(branchGraphs)) {
 			namedBranches[i][1] = numToPrefix[branchGraphs[i][1].length] + 'yl';
 		}
-		else {
+		else { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
 			alert('Too many branches. Not currently supported. :(');
 		}
 	}
@@ -339,8 +341,8 @@ function nameBranches(branchGraphs) {
 }
 
 function name() {
-	var input = document.getElementById("SMILES").value;
-	skeleton = smilesToCarbonSkeleton(input);
+	//var input = document.getElementById("SMILES").value;
+	skeleton = drawnGraph;
 	backbone = findLongestPath(skeleton);
 	branches = findBranches(skeleton);
 	branches = nameBranches(branches);
@@ -375,8 +377,9 @@ function name() {
 	for (var j = 0; j < subsTypes.length; j++) { // ****still need to alphabetize these
 		output = '-' + subsPositions[j] + '-' + numToNumTerm[subsCount[j]] + subsTypes[j] + output;
 	}
-	output = output.substring(1,output.length);
-
+	if (output.charAt(0) === '-') {
+		output = output.substring(1,output.length);
+	}
 
 	return output;
 }
