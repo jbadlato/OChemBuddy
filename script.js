@@ -133,6 +133,11 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 		longestPathLength = Math.max(longestPathLength, getMaxOfArray(pathLengths));
 	}
 
+	// Deal with methane:
+	if (adjList.length === 1) {
+		carbon1 = 0;
+	}
+
 	// Find the actual path, not just the length:
 	discovered = [carbon1];
 	testPath = [carbon1];
