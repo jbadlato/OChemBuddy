@@ -175,15 +175,15 @@ function xParenth(s) {
 	return s;
 }
 
-function smilesToCarbonSkeleton(smilesInput) {
+/*function smilesToCarbonSkeleton(smilesInput) {
 	smilesInput = smilesInput + '()'; // Needed for branch detection.
 
-	/* For now, assuming that there are no rings. (Therefore no aromatic rings & no lowercase letters)
-	Also assume for now that there is only carbons.
+	// For now, assuming that there are no rings. (Therefore no aromatic rings & no lowercase letters)
+	//Also assume for now that there is only carbons.
 
-	Carbon Index refers to where the carbon is within the SMILES string.
-	Carbon Label refers to the number we assign to the carbon to keep track of it within the graph.
-	*/
+	//Carbon Index refers to where the carbon is within the SMILES string.
+	//Carbon Label refers to the number we assign to the carbon to keep track of it within the graph.
+	
 	adjacencyList = []; // Stores adjacency lists for each node
 	carbonIndices = [];	// Labels each carbon numerically and stores their positions in SMILES string
 	for (var i = 0; i < smilesInput.length; i++) { // Count the carbons & generate empty adjacency matrix
@@ -266,7 +266,7 @@ function smilesToCarbonSkeleton(smilesInput) {
 	// -----  Add ring bonds  ----- 
 	// May or may not have to do this here depending on structure of the rest of the program.
 	return adjacencyList;
-}
+} */
 
 function findBranches(skel) { 	
 	// SHOULD TEST THIS FURTHER WITH MORE COMPLICATED BRANCHES
@@ -315,37 +315,47 @@ function findBranches(skel) {
 	return allBranches;
 }
 
-function checkForBranchedBranch(branchGraphs) { // returns true if there are branched branches, returns false otherwise
+function checkForBranchedBranch(branchGraphs) { // adds third element to each branch in branchGraphs: true if the branch has branches, false if not.
 	for (var i = 0; i < branchGraphs.length; i++) {
 		subgraph = branchGraphs[i][1];
+		branchGraphs[i][2] = false;
 		for (var j = 0; j < subgraph.length; j++) {
+			if (j === 0 && subgraph[j].length > 1) {
+				branchGraphs[i][2] = true;
+				break;
+			}
 			if (subgraph[j].length > 2) {
-				return true;
+				branchGraphs[i][2] = true;
+				break;
 			}
 		}
 	}
-	return false;
+	return branchGraphs;
 }
 
 function nameBranches(branchGraphs) {
 	namedBranches = branchGraphs;
+	branchGraphs = checkForBranchedBranch(branchGraphs);
 	for (var i = 0; i < branchGraphs.length; i++) {
-		if (!checkForBranchedBranch(branchGraphs)) {
+		if (!branchGraphs[i][2]) {
 			namedBranches[i][1] = numToPrefix[branchGraphs[i][1].length] + 'yl';
 		}
 		else { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
 			alert('Too many branches. Not currently supported. :(');
+			return false;
 		}
 	}
 	return namedBranches;
 }
 
 function name() {
-	//var input = document.getElementById("SMILES").value;
 	skeleton = drawnGraph;
 	backbone = findLongestPath(skeleton);
 	branches = findBranches(skeleton);
 	branches = nameBranches(branches);
+	if (branches === false) {
+		return false;
+	}
 
 	subsTypes = [];
 	subsCount = [];
