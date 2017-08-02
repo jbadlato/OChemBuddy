@@ -7,8 +7,15 @@
 </head>
 
 <body>
-  <canvas id="sketchPad" width="500" height="500"></canvas>
-  <button type="button" onclick="test()">Name My Molecule</button>
+  <div class="drawUI">
+    <div class="palette">
+      <button type="button" onclick="changeToErase()" class="pButt" id="eraseButton">Erase</button>
+      <br/>
+      <button type="button" onclick="changeToDraw()" class="pButt" id="drawButton">Draw</button>
+    </div>
+    <canvas id="sketchPad" width="500" height="500"></canvas>
+  </div>
+  <button type="button" onclick="test()" id="nameButton">Name My Molecule</button>
   <script type="text/javascript" src="script.js"></script>
   <script type="text/javascript" src="drawing.js"></script>
 </body>

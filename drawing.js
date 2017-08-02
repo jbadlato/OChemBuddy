@@ -10,6 +10,24 @@ var mousePosStore;
 var mousPos;
 var carbonPositions = [];
 var drawnGraph = [];
+var cursorType = 'draw';
+
+document.getElementById("sketchPad").onmousedown = function() {
+	return false;
+};
+
+function clrScrn() {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.beginPath();
+}
+
+function changeToErase() {
+	cursorType = 'erase';
+}
+
+function changeToDraw() {
+	cursorType = 'draw';
+}
 
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
@@ -26,67 +44,108 @@ function getDist(pt1, pt2) {
 	return c;
 }
 
-function drawCarbon(p) { 
+function findClosestCarbon(p) {
 	var minD = 99999999; 
 	var d;
+	var closestCarbon;
 	for (var i = 0; i < carbonPositions.length; i++) {
 		d = getDist(p, carbonPositions[i]);
 		if (d < minD) {
 			minD = d;
+			closestCarbon = carbonPositions[i];
 		}
 	}
-	if (minD < 20) {
-		return false; // don't draw carbons too close to each other.
+	return {
+		position: closestCarbon,
+		distance: minD
 	}
+}
+
+function drawGraph() {
+	//var c = ;
+	//var c1 = -2;
+	//var c2 = -2;
+	console.log(drawnGraph);
+	clrScrn();
+	// draw carbons:
+	for (var i = 0; i < carbonPositions.length; i++) {
+		//c = carbonPositions[i];
+		drawCarbon(carbonPositions[i]);
+	}
+	// draw bonds:
+	for (var i = 0; i < drawnGraph.length; i++) {
+		//c1 = carbonPositions[i];
+		for (var j = 0; j < drawnGraph[i].length; j++) {
+			//c2 = carbonPositions[drawnGraph[i][j]];
+			drawBond(carbonPositions[i], carbonPositions[drawnGraph[i][j]]);
+		}
+	}
+}
+
+function drawCarbon(p) { 
 	ctx.moveTo(p.x,p.y);
 	ctx.arc(p.x,p.y,3,0,2*Math.PI);
-	ctx.fillStyle = "#000";
+	ctx.fillStyle = '#000';
 	ctx.fill();
 	ctx.stroke();
+}
+
+function createCarbon(p) {
+	closeC = findClosestCarbon(p);
+	if (closeC.distance < 20) {
+		return false; // don't draw carbons too close to each other.
+	}
 	carbonPositions.push(p);
 	drawnGraph.push([]);
 }
 
 function drawBond(start, end) {
-	var startC;
-	var d;
-	var minD = 99999999;
-	for (var i = 0; i < carbonPositions.length; i++) {
-		d = getDist(start, carbonPositions[i]);
-		if (d < minD) {
-			minD = d;
-			startC = carbonPositions[i];
-		}
-	}
-	if (minD > 10) {
+	var closeCstart = findClosestCarbon(start);
+	if (closeCstart.distance > 10) {
 		return false; //don't draw bond
 	}
-	var endC;
-	var minD = 99999999;
-	for (var i = 0; i < carbonPositions.length; i++) {
-		d = getDist(end, carbonPositions[i]);
-		if (d < minD) {
-			minD = d;
-			endC = carbonPositions[i];
-		}
-	}
-	if (minD > 10) {
+	var closeCend = findClosestCarbon(end);
+	if (closeCend.distance > 10) {
 		return false; //don't draw bond
 	}
-	if (getDist(startC,endC) === 0) {
+	if (closeCstart.position === closeCend.position) {
 		return false; //don't draw bond
 	}
 	ctx.beginPath();
-	ctx.moveTo(startC.x, startC.y);
-	ctx.lineTo(endC.x, endC.y);
-	ctx.fillStyle = "#000";
+	ctx.moveTo(closeCstart.position.x, closeCstart.position.y);
+	ctx.lineTo(closeCend.position.x, closeCend.position.y);
+	ctx.fillStyle = '#000';
 	ctx.fill();
 	ctx.stroke();
+}
 
-	startInd = carbonPositions.indexOf(startC);
-	endInd = carbonPositions.indexOf(endC);
+function createBond(start, end) {
+	startInd = carbonPositions.indexOf(start);
+	endInd = carbonPositions.indexOf(end);
+	for (var i = 0; i < drawnGraph[startInd].length; i++) {
+		if (drawnGraph[startInd][i] === endInd) {
+			return false;
+		}
+	}
 	drawnGraph[startInd].push(endInd);
 	drawnGraph[endInd].push(startInd);
+}
+
+function deleteCarbon(p) {
+	cInd = carbonPositions.indexOf(p);
+	carbonPositions.splice(cInd, 1);
+	drawnGraph.splice(cInd, 1);
+	for (var i = 0; i < drawnGraph.length; i++) {
+		for (var j = 0; j < drawnGraph[i].length; j++) {
+			if (drawnGraph[i][j] === cInd) {
+				x = drawnGraph[i].indexOf(cInd);
+				drawnGraph[i].splice(x, 1);
+			}
+			if (drawnGraph[i][j] > cInd) {
+				drawnGraph[i][j]--;
+			}
+		}
+	}
 }
 
 canvas.addEventListener('mousemove', function(evt) {
@@ -95,15 +154,33 @@ canvas.addEventListener('mousemove', function(evt) {
 
 canvas.addEventListener('mousedown', function(evt) {
 	mousePosStore = getMousePos(canvas,evt);
-}, false)
+}, false);
 
 canvas.addEventListener('mouseup', function(evt) {
 	mousePos = getMousePos(canvas, evt);
-	d = getDist(mousePos, mousePosStore);
-	if (d < 3) {
-		drawCarbon(mousePosStore);
+	if (cursorType === 'draw') {
+		d = getDist(mousePos, mousePosStore);
+		if (d < 3) {
+			createCarbon(mousePosStore);
+			clrScrn();
+			drawGraph();
+		}
+		else {
+			start = findClosestCarbon(mousePosStore);
+			end = findClosestCarbon(mousePos);
+			if (start.position !== end.position && start.distance < 15 && end.distance < 15) {
+				createBond(start.position, end.position);
+				clrScrn();
+				drawGraph();
+			}
+		}
 	}
-	else {
-		drawBond(mousePosStore, mousePos);
+	else if (cursorType === 'erase') {
+		c = findClosestCarbon(mousePos);
+		if (c.distance < 10) {
+			deleteCarbon(c.position);
+			clrScrn();
+			drawGraph();
+		}
 	}
-}, false)
+}, false);

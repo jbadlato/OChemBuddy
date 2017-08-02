@@ -1,13 +1,29 @@
 canvas {
 	border: 1px solid #000;
-	display: block;
-	margin-right: auto;
-	margin-left: auto;
+	display: inline-block;
 }
 
-button {
+#nameButton {
 	display: block;
 	margin-top: 25px;
 	margin-right: auto;
 	margin-left: auto;
+}
+
+.pButt {
+	width: 50px;
+	display: inline-block;
+	float: right;
+}
+
+.drawUI {
+	display: table;
+	padding-right: 50px;	/* same as .pButt width to center the canvas */
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.palette {
+	float: left;
+	padding-top: 5px;
 }
