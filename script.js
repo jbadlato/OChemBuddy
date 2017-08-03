@@ -180,7 +180,8 @@ function xParenth(s) {
 	return s;
 }
 
-/*function smilesToCarbonSkeleton(smilesInput) {
+/* I probably won't need this at all anymore
+function smilesToCarbonSkeleton(smilesInput) {
 	smilesInput = smilesInput + '()'; // Needed for branch detection.
 
 	// For now, assuming that there are no rings. (Therefore no aromatic rings & no lowercase letters)
@@ -387,10 +388,21 @@ function name() {
 		subsPositions[k] = subsPositions[k].substring(0,subsPositions[k].length - 1);
 	}
 
+	subs = [];
+	for (var i = 0; i < subsTypes.length; i++) {
+		subs.push([]);
+		subs[i].push(subsTypes[i]);
+		subs[i].push(subsCount[i]);
+		subs[i].push(subsPositions[i]);
+	}
+	subs.sort(function(a,b) {
+		if (a[0] > b[0]) return -1;
+		if (a[0] < b[0]) return 1;
+	});
 
 	output = numToPrefix[backbone.length] + 'ane';
-	for (var j = 0; j < subsTypes.length; j++) { // ****still need to alphabetize these
-		output = '-' + subsPositions[j] + '-' + numToNumTerm[subsCount[j]] + subsTypes[j] + output;
+	for (var j = 0; j < subs.length; j++) { // ****still need to alphabetize these
+		output = '-' + subs[j][2] + '-' + numToNumTerm[subs[j][1]] + subs[j][0] + output;
 	}
 	if (output.charAt(0) === '-') {
 		output = output.substring(1,output.length);
