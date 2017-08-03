@@ -25,7 +25,7 @@ function test() {
 	console.log(out);*/
 
 	//FUNCTION : name();
-	x = name();
+	x = name(drawnGraph, false);
 	alert(x);
 }
 
@@ -78,6 +78,19 @@ var numToNumTerm = {
 	8: 'octa',
 	9: 'nona',
 	10: 'deca'
+}
+
+var numToMultTerm = {
+	1: '',
+	2: 'bis',
+	3: 'tris',
+	4: 'tetrakis',
+	5: 'pentakis',
+	6: 'hexakis',
+	7: 'heptakis',
+	8: 'octakis',
+	9: 'nonakis',
+	10: 'decakis'
 }
 
 function getMaxOfArray(numArray) {
@@ -244,116 +257,54 @@ function findLongestPathFromZero(adjList) {
 	return testPath;
 }
 
-/* I probably won't need this at all anymore
-function xParenth(s) {	
-	// This function replaces segments of a string in between '(' and ')' with '...xxxx...' (Both '(' and ')' are necessary)
-	while (s.indexOf(')') !== -1 && s.indexOf('(') !== -1) { // until there are no more ')'
-		closeP = s.lastIndexOf(')');
-		openP = s.lastIndexOf('(',closeP); //closest '('
-		closeP = s.indexOf(')', openP); //closest ')'. Now have the innermost set of ()
-		x = 'x'.repeat(closeP - openP + 1);
-		replaceThis = s.substring(openP, closeP + 1);
-		s = s.replace(replaceThis, x);
+function findBranches(skel) { 	
+	backbone = findLongestPath(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
+	allBranches = []; // Will contain all the subgraphs representing branches.
+	for (var i = 0; i < backbone.length; i++) { // Ci is the carbon in the backbone at which we are looking for branches.
+		Ci = backbone[i];
+		adjCs = skel[Ci];
+		if (!arrayContains(backbone, adjCs)) { // If Ci is bonded to a carbon not in the backbone
+			// There is a branch! Let's graph it.
+			for (var j = 0; j < adjCs.length; j++) {
+				Cj = adjCs[j]; // Cj is potentially the start of a branch. (max 2 per Ci)
+				branch = [];	// will contain two elements: 	(1) index of Ci (which is just i), where the branch connects
+							 	//								(2) the graph of the branch. Cj will have index 0.
+				branch.push(i); // where the branch is located on the backbone
+				subgraph = []; // adjacency list for the branch
+				subgraph.push([]); // adjacencies of Cj
+				branchInd = 0; // counter to reindex carbons in branch. Cj has index 0.
+				if (backbone.indexOf(Cj) === -1) { // Now we know Cj is a start of a branch.
+					discovered = [];
+					newNodes = [Ci, Cj];
+					while (newNodes.length !== 0) {
+						discovered = arrayAdd(discovered, newNodes);
+						newNodes = [];
+						for (var k = 1; k < discovered.length; k++) { // Ck is discovered in the branch.
+							Ck = discovered[k];
+							for (var h = 0; h < skel[Ck].length; h++) { // Ch is connected to Ck
+								Ch = skel[Ck][h];
+								if (discovered.indexOf(Ch) === -1) {
+									newNodes.push(Ch);
+									branchInd += 1;
+									subgraph.push([]);
+									subgraph[k-1].push(branchInd);
+									subgraph[branchInd].push(k-1);
+								}
+							}
+						}
+					}
+					branch.push(subgraph);
+					allBranches.push(branch);
+				}
+			}
+		}
 	}
-	return s;
+
+	return allBranches;
 }
 
-function smilesToCarbonSkeleton(smilesInput) {
-	smilesInput = smilesInput + '()'; // Needed for branch detection.
-
-	// For now, assuming that there are no rings. (Therefore no aromatic rings & no lowercase letters)
-	//Also assume for now that there is only carbons.
-
-	//Carbon Index refers to where the carbon is within the SMILES string.
-	//Carbon Label refers to the number we assign to the carbon to keep track of it within the graph.
-	
-	adjacencyList = []; // Stores adjacency lists for each node
-	carbonIndices = [];	// Labels each carbon numerically and stores their positions in SMILES string
-	for (var i = 0; i < smilesInput.length; i++) { // Count the carbons & generate empty adjacency matrix
-		if (smilesInput.charAt(i) === 'C') {
-			adjacencyList.push([]); // Create new node
-			carbonIndices.push(i); // Label the carbon & Store its position in the SMILES string
-		}
-	}
-	for (var i = 0; i < carbonIndices.length; i++) { // For each iteration, find the adjacencies for the ith carbon.
-		ithCIndex = carbonIndices[i];
-		// -----  Finding the carbon bonded behind -----
-		if (i === 0) {	// If i=0, there is no previous carbon. 
-			// Do nothing.
-		}
-		else {
-			befiC = smilesInput.substring(0,ithCIndex); // string up to ith C
-			xedOut = xParenth(befiC);
-			adjCIndex = xedOut.lastIndexOf('C');
-			adjCLabel = carbonIndices.indexOf(adjCIndex);
-			adjacencyList[i].push(adjCLabel);
-		}
-
-
-		// -----  Finding the carbon(s) bonded after -----
-		if (i === carbonIndices.length - 1) { // This would be the last carbon. Nothing after it.
-			continue;
-		}
-		else { 
-			// Find C that is not branched:
-			aftiC = smilesInput.substring(ithCIndex+1, smilesInput.length);
-			if (aftiC.indexOf(')') < aftiC.indexOf('C')) { // This is the end of a branch.
-				continue;
-			}
-			xedOut = xParenth(aftiC);
-			unbranchedCIndex = xedOut.indexOf('C');
-			unbranchedCIndex += ithCIndex + 1;
-			unbranchedCLabel = carbonIndices.indexOf(unbranchedCIndex);
-			adjacencyList[i].push(unbranchedCLabel);
-
-			// Find branched connection(s), if they exist: 
-			if (aftiC.indexOf('(') === -1) { // There isn't any branching at all after this carbon, let alone on this carbon.
-				continue;
-			}
-			firstopenP = aftiC.indexOf('(') + ithCIndex + 1;
-			if (firstopenP < unbranchedCIndex) { // This means there is at least one branched connection.
-				firstopenP = aftiC.indexOf('(');
-				branchedCIndex = aftiC.indexOf('C', firstopenP) + ithCIndex + 1;
-				branchedCLabel = carbonIndices.indexOf(branchedCIndex);
-				adjacencyList[i].push(branchedCLabel);
-				// Look for a second branched connection: (There is a max of two for nearly all organic molecules)
-				// Find end of first branch: 
-				openCount = 0;
-				closeCount = 0;
-				for (var j = 0; j < aftiC.length; j++) {
-					if (aftiC.charAt(j) === '(') {
-						openCount++;
-					}
-					if (aftiC.charAt(j) === ')') {
-						closeCount++;
-					}
-					if (openCount === closeCount) {
-						break;	// At the first instance of # of open parentheses equaling # of close parentheses, this is the end of the first branch.
-						// When the loop breaks, j will equal the index of the last close parentheses of the branch.
-					}
-				}
-				branchEnd = j;
-				if (aftiC.indexOf('(', branchEnd) === 1) { // No more branching in the molecule at all.
-					continue;
-				}
-				firstopenP = aftiC.indexOf('(', branchEnd) + ithCIndex + 1;
-				if (firstopenP < unbranchedCIndex) { // This means there is a second branch from ith Carbon.
-					firstopenP = aftiC.indexOf('(', branchEnd);
-					branchedCIndex = aftiC.indexOf('C', firstopenP) + ithCIndex + 1;
-					branchedCLabel = carbonIndices.indexOf(branchedCIndex);
-					adjacencyList[i].push(branchedCLabel);
-				}
-			}
-		}
-	}
-	// -----  Add ring bonds  ----- 
-	// May or may not have to do this here depending on structure of the rest of the program.
-	return adjacencyList;
-} */
-
-function findBranches(skel) { 	
-	// SHOULD TEST THIS FURTHER WITH MORE COMPLICATED BRANCHES
-	backbone = findLongestPath(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
+function findBrBranches(skel) {
+	backbone = findLongestPathFromZero(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
 	allBranches = []; // Will contain all the subgraphs representing branches.
 	for (var i = 0; i < backbone.length; i++) { // Ci is the carbon in the backbone at which we are looking for branches.
 		Ci = backbone[i];
@@ -416,32 +367,43 @@ function checkForBranchedBranch(branchGraphs) { // adds third element to each br
 	return branchGraphs;
 }
 
-function nameBranches(branchGraphs) {
+var yStore = [];
+var brStore = [];
+function nameBranches(branchGraphs) { // runs infinitely as of now
 	namedBranches = branchGraphs;
 	branchGraphs = checkForBranchedBranch(branchGraphs);
-	for (var i = 0; i < branchGraphs.length; i++) {
-		if (!branchGraphs[i][2]) {
-			namedBranches[i][1] = numToPrefix[branchGraphs[i][1].length] + 'yl';
+	for (var y = 0; y < branchGraphs.length; y++) {
+		if (!branchGraphs[y][2]) {
+			namedBranches[y][1] = numToPrefix[branchGraphs[y][1].length] + 'yl';
+			console.log(namedBranches[y][1]);
 		}
-		else { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
-			//alert('Too many branches. Not currently supported. :(');
-			//return false;
-
-			x = findLongestPathFromZero(branchGraphs[i][1]);
-			console.log(x);
+		else if (branchGraphs[y][2]) { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
+			console.log(y);
+			console.log(namedBranches[y][1]);
+			yStore.push(y);
+			brStore.push(namedBranches);
+			x = name(branchGraphs[y][1], true);
+			y = yStore.pop();
+			namedBranches = brStore.pop();
+			namedBranches[y][1] = '(' + x + ')';
+			console.log(namedBranches[y][1]);
 		}
 	}
 	return namedBranches;
 }
 
-function name() {
-	skeleton = drawnGraph;
-	backbone = findLongestPath(skeleton);
-	branches = findBranches(skeleton);
-	branches = nameBranches(branches);
-	if (branches === false) {
-		return false;
+function name(skeleton, side) { // side=true for branches, side=false for molecules
+	if (side === true) {
+		branches = findBrBranches(skeleton);
+		branches = nameBranches(branches);
+		backbone = findLongestPathFromZero(skeleton);
+	}	
+	else if (side === false) {
+		branches = findBranches(skeleton);
+		branches = nameBranches(branches);
+		backbone = findLongestPath(skeleton);
 	}
+
 
 	subsTypes = [];
 	subsCount = [];
@@ -480,9 +442,19 @@ function name() {
 		if (a[0] < b[0]) return 1;
 	});
 
-	output = numToPrefix[backbone.length] + 'ane';
+	if (side === true) {
+		output = numToPrefix[backbone.length] + 'yl';
+	}
+	if (side === false) {
+		output = numToPrefix[backbone.length] + 'ane';
+	}
 	for (var j = 0; j < subs.length; j++) {
-		output = '-' + subs[j][2] + '-' + numToNumTerm[subs[j][1]] + subs[j][0] + output;
+		if (subs[j][0].charAt(0) === '(') {
+			output = '-' + subs[j][2] + '-' + numToMultTerm[subs[j][1]] + subs[j][0] + output;
+		}
+		else {
+			output = '-' + subs[j][2] + '-' + numToNumTerm[subs[j][1]] + subs[j][0] + output;
+		}
 	}
 	if (output.charAt(0) === '-') {
 		output = output.substring(1,output.length);
