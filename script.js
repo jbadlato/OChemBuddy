@@ -51,7 +51,20 @@ var numToPrefix = {
 	17: "heptadec",
 	18: "octadec",
 	19: "nonadec",
-	20: "eicos"
+	20: "icos",
+	21: "henicos",
+	22: "docos",
+	23: "tricos",
+	24: "tetracos",
+	25: "pentacos",
+	26: "hexacos",
+	27: "heptacos",
+	28: "octacos",
+	29: "nonacos",
+	30: "triacont",
+	31: "hentriacont",
+	32: "dotriacont",
+	33: "tritriacont",
 }
 
 var numToNumTerm = {
@@ -91,9 +104,6 @@ function arrayAdd(arr1, arr2) {	// Creates a new array with all elements of arr1
 }
 
 function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
-
-	// ********** NOTE: THIS RETURNS THE LENGTH OF THE PATH. THIS TRANSLATES TO THE NUMBER OF BONDS, NOT NUMBER OF CARBONS ALONG THE PATH. ************
-
 
 	endPts = []; // list of nodes with only one edge
 	for (var i = 0; i < adjList.length; i++) {
@@ -160,13 +170,81 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 				}
 			}
 		}
-
 	}
-
-
 	return testPath;
 }
 
+function findLongestPathFromZero(adjList) {
+// Copied & Pasted from findLongestPath(adjList). (Just did one iteration of for loop. startPt = 0.)
+// Can definitely be simplified a little bit, but didn't feel like messing with it.
+	endPts = []; // list of nodes with only one edge
+	for (var i = 0; i < adjList.length; i++) {
+		if (adjList[i].length === 1) {
+			endPts.push(i);
+		}
+	}
+
+	longestPathLength = 0;
+	startPt = 0;
+	pathLengths = new Array(adjList.length).fill(-1);
+	searched = [startPt];
+	distance = 0;
+	pathLengths[startPt] = 0;
+	while (searched.length < adjList.length) {
+		distance++;
+		newNodes = [];
+		for (var j = 0; j < searched.length; j++) {
+			for (var k = 0; k < adjList[searched[j]].length; k++) {
+				h = adjList[searched[j]][k];
+				if (newNodes.indexOf(h) === -1 && searched.indexOf(h) === -1) {
+					newNodes.push(h);
+				}
+				if (pathLengths[h] === -1) {
+					pathLengths[h] = distance;
+				}
+
+			}
+		}
+		searched = searched.concat(newNodes);
+	}
+	if (getMaxOfArray(pathLengths) > longestPathLength) {
+		carbon1 = 0;
+		carbonLast = pathLengths.indexOf(getMaxOfArray(pathLengths));
+	}
+	longestPathLength = Math.max(longestPathLength, getMaxOfArray(pathLengths));
+
+	// Deal with methane:
+	if (adjList.length === 1) {
+		carbon1 = 0;
+	}
+
+	// Find the actual path, not just the length:
+	discovered = [carbon1];
+	testPath = [carbon1];
+	currNode = carbon1;
+	while (testPath.length < longestPathLength+1) {
+		for (var k = 1; k < (testPath.length - 1); k++) { // Delete nodes from test path except the end point and the start point
+			ind = discovered.indexOf(testPath[k]);
+			discovered.splice(ind, 1);
+		}
+		testPath = [carbon1];
+		currNode = carbon1;
+		while (!arrayContains(discovered, adjList[currNode])) { // While there is an undiscovered node connected to current node
+			for (var j = 0; j < adjList[currNode].length; j++) {
+				x = adjList[currNode][j];
+				if (discovered.indexOf(x) === -1) { // Only if we haven't used the node yet
+					discovered.push(x);
+					testPath.push(x);
+					currNode = x;
+					break;
+				}
+			}
+		}
+	}
+	return testPath;
+}
+
+/* I probably won't need this at all anymore
 function xParenth(s) {	
 	// This function replaces segments of a string in between '(' and ')' with '...xxxx...' (Both '(' and ')' are necessary)
 	while (s.indexOf(')') !== -1 && s.indexOf('(') !== -1) { // until there are no more ')'
@@ -180,7 +258,6 @@ function xParenth(s) {
 	return s;
 }
 
-/* I probably won't need this at all anymore
 function smilesToCarbonSkeleton(smilesInput) {
 	smilesInput = smilesInput + '()'; // Needed for branch detection.
 
@@ -347,8 +424,11 @@ function nameBranches(branchGraphs) {
 			namedBranches[i][1] = numToPrefix[branchGraphs[i][1].length] + 'yl';
 		}
 		else { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
-			alert('Too many branches. Not currently supported. :(');
-			return false;
+			//alert('Too many branches. Not currently supported. :(');
+			//return false;
+
+			x = findLongestPathFromZero(branchGraphs[i][1]);
+			console.log(x);
 		}
 	}
 	return namedBranches;
@@ -401,7 +481,7 @@ function name() {
 	});
 
 	output = numToPrefix[backbone.length] + 'ane';
-	for (var j = 0; j < subs.length; j++) { // ****still need to alphabetize these
+	for (var j = 0; j < subs.length; j++) {
 		output = '-' + subs[j][2] + '-' + numToNumTerm[subs[j][1]] + subs[j][0] + output;
 	}
 	if (output.charAt(0) === '-') {

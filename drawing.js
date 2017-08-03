@@ -65,7 +65,6 @@ function drawGraph() {
 	//var c = ;
 	//var c1 = -2;
 	//var c2 = -2;
-	console.log(drawnGraph);
 	clrScrn();
 	// draw carbons:
 	for (var i = 0; i < carbonPositions.length; i++) {
