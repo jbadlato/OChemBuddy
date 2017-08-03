@@ -375,21 +375,25 @@ function nameBranches(branchGraphs) { // runs infinitely as of now
 	for (var y = 0; y < branchGraphs.length; y++) {
 		if (!branchGraphs[y][2]) {
 			namedBranches[y][1] = numToPrefix[branchGraphs[y][1].length] + 'yl';
-			console.log(namedBranches[y][1]);
 		}
 		else if (branchGraphs[y][2]) { // ALTER SO THAT IT CAN NAME INFINITELY BRANCHED STRUCTURES
-			console.log(y);
-			console.log(namedBranches[y][1]);
 			yStore.push(y);
 			brStore.push(namedBranches);
 			x = name(branchGraphs[y][1], true);
 			y = yStore.pop();
 			namedBranches = brStore.pop();
 			namedBranches[y][1] = '(' + x + ')';
-			console.log(namedBranches[y][1]);
 		}
 	}
 	return namedBranches;
+}
+
+function lettersOnly(string) {
+	firstLetter = string.match(/[a-z]/i)[0];
+	ind = string.indexOf(firstLetter);
+	letters = string.substring(ind, string.length);
+	console.log(string + ': ' + letters);
+	return letters;
 }
 
 function name(skeleton, side) { // side=true for branches, side=false for molecules
@@ -438,8 +442,12 @@ function name(skeleton, side) { // side=true for branches, side=false for molecu
 		subs[i].push(subsPositions[i]);
 	}
 	subs.sort(function(a,b) {
-		if (a[0] > b[0]) return -1;
-		if (a[0] < b[0]) return 1;
+		if (lettersOnly(a[0]) === lettersOnly(b[0])) {
+			if (a[0] > b[0]) return -1;
+			if (a[0] < b[0]) return 1;
+		}
+		if (lettersOnly(a[0]) > lettersOnly(b[0])) return -1;
+		if (lettersOnly(a[0]) < lettersOnly(b[0])) return 1;
 	});
 
 	if (side === true) {
