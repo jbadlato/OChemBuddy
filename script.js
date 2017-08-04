@@ -25,11 +25,47 @@ function test() {
 	console.log(out);*/
 
 	//FUNCTION : name();
-	x = name(drawnGraph, false);
-	alert(x);
+	if (checkForRings(drawnGraph)) {
+		alert('Cyclic hydrocarbons not currently supported :(');
+		return false;
+	}
+	else{
+		x = name(drawnGraph, false);
+		alert(x);
+	}
 }
 
+function clone(obj) {
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
 
+    // Handle Date
+    if (obj instanceof Date) {
+        var copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    // Handle Array
+    if (obj instanceof Array) {
+        var copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = clone(obj[i]);
+        }
+        return copy;
+    }
+
+    // Handle Object
+    if (obj instanceof Object) {
+        var copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+        }
+        return copy;
+    }
+
+    throw new Error("Unable to copy obj! Its type isn't supported.");
+}
 
 var numToPrefix = {
 	1: "meth",
@@ -116,8 +152,54 @@ function arrayAdd(arr1, arr2) {	// Creates a new array with all elements of arr1
 	return newArr;
 }
 
-function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
+function checkForRings(adjList) { // returns true if there is a ring in the structure; returns false if not.
+	adjListCopy = clone(adjList);
+	endPoints = [];
+	for (var a = 0; a < adjListCopy.length; a++) {
+		if (adjListCopy[a].length === 1) {
+			endPoints.push(a);
+		}
+	}
+	while (endPoints.length > 0) {
+		// delete end points from graph: 
+		for (var a = 0; a < endPoints.length; a++) {
+			for (var b = 0; b < adjListCopy.length; b++) {
+				if (b === endPoints[a]) {
+					adjListCopy[b] = []; //remove edges from endpoint
+				}
+				else {
+					x = adjListCopy[b].indexOf(endPoints[a]);
+					if (x !== -1) {
+						adjListCopy[b].splice(x,1); //remove edge to end point
+					}
+				}
+			}
+		}
+		// find new end points: 
+		endPoints = [];
+		for (var a = 0; a < adjListCopy.length; a++) {
+			if (adjListCopy[a].length === 1) {
+				endPoints.push(a);
+			}
+		}
+	}
+	numEdges = 0;
+	for (var a = 0; a < adjListCopy.length; a++) {
+		numEdges += adjListCopy[a].length;
+	}
+	if (numEdges === 0) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
 
+function checkForConnectivity(adjList) { // returns true if the graph is strongly connected; returns false if not.
+
+}
+
+function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
 	endPts = []; // list of nodes with only one edge
 	for (var i = 0; i < adjList.length; i++) {
 		if (adjList[i].length === 1) {
@@ -392,7 +474,6 @@ function lettersOnly(string) {
 	firstLetter = string.match(/[a-z]/i)[0];
 	ind = string.indexOf(firstLetter);
 	letters = string.substring(ind, string.length);
-	console.log(string + ': ' + letters);
 	return letters;
 }
 
