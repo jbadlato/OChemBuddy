@@ -1,32 +1,10 @@
 function test() {
-	/*//FUNCTION: smilesToCarbonSkeleton(smilesInput)
-	var smiles = document.getElementById("SMILES").value;
-	out = smilesToCarbonSkeleton(smiles);
-	console.log(out);
-	
-	
-	//FUNCTION: findLongestPath(adjList)
-	var smiles = document.getElementById("SMILES").value;
-	graph = smilesToCarbonSkeleton(smiles);
-	out = findLongestPath(graph);
-	console.log(out);
-
-	//FUNCTION: findBranches(skel)
-	var smiles = document.getElementById("SMILES").value;
-	graph = smilesToCarbonSkeleton(smiles);
-	b = findBranches(graph);
-	console.log(b);
-	
-	//FUNCTION: nameBranches(branchGraphs)
-	var smiles = document.getElementById("SMILES").value;
-	graph = smilesToCarbonSkeleton(smiles);
-	b = findBranches(graph);
-	out = nameBranches(b);
-	console.log(out);*/
-
-	//FUNCTION : name();
 	if (checkForRings(drawnGraph)) {
 		alert('Cyclic hydrocarbons not currently supported :(');
+		return false;
+	}
+	if (!checkForConnectivity(drawnGraph)) {
+		alert('Only input one molecule at a time');
 		return false;
 	}
 	else{
@@ -196,7 +174,31 @@ function checkForRings(adjList) { // returns true if there is a ring in the stru
 }
 
 function checkForConnectivity(adjList) { // returns true if the graph is strongly connected; returns false if not.
-
+	discovered = [];
+	newNodes = [0];
+	while (newNodes.length !== 0) {
+		discovered = arrayAdd(discovered, newNodes);
+		newNodes = [];
+		for (var k = 0; k < discovered.length; k++) {
+			Ck = discovered[k];
+			for (var h = 0; h < adjList[Ck].length; h++) {
+				Ch = adjList[Ck][h];
+				if (discovered.indexOf(Ch) === -1) {
+					newNodes.push(Ch);
+				}
+			}
+		}
+	}
+	if (discovered.length === adjList.length) {
+		return true;
+	}
+	else if (discovered.length > adjList.length) {
+		alert('ERROR');
+		return false;
+	}
+	else {
+		return false;
+	}
 }
 
 function findLongestPath(adjList) { // returns length of longest path possible without repeating nodes
