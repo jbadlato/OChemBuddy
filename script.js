@@ -387,7 +387,7 @@ function findBranchesUtil(skel, backbone) {
 	return allBranches;
 }
 
-function findBranches(skel) { // numbers the backbone such that the side chains have the lowest numbers possible (Rule A2.2)
+function findBranches(skel) { // numbers the backbone such that the side chains have the lowest numbers possible (Rule A-2.2)
 	backbone1 = findLongestPath(skel);
 	backbone2 = [];
 	for (var i = 0; i < backbone1.length; i++) {
@@ -419,6 +419,52 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 			};
 		}
 	}
+	// Rule A-2.4: If the substituents are in equivalent positions:
+	skel1 = clone(skel); //renumber skeleton so we can name from 0 position of backbone1
+	for (var i = 0; i < skel1.length; i++) {
+		if (i === 0) {
+			skel1[i] = skel[backbone1[0]];
+		}
+		if (i === backbone1[0]) {
+			skel1[i] = skel[0];
+		}
+		for (var j = 0; j < skel1[i].length; j++) {
+			if (skel1[i][j] === 0) {
+				skel1[i][j] = backbone1[0];
+			}
+			if (skel1[i][j] === backbone1[0]) {
+				skel1[i][j] = 0;
+			}
+		}
+	}
+	skel2 = clone(skel);
+	skel2[0] = skel[backbone2[0]];
+	skel2[backbone2[0]] = skel[0];
+	for (var i = 0; i < skel2.length; i++) {
+		for (var j = 0; j < skel2[i].length; j++) {
+			if (skel2[i][j] == 0) {
+				skel2[i][j] = backbone2[0];
+			}
+			else if (skel2[i][j] === backbone2[0]) {
+				skel2[i][j] = 0;
+			}
+		}
+	}
+	name1 = name(skel1, true);
+	name2 = name(skel2, true);
+	if (name1 < name2) {
+		return {
+			backbone: backbone1,
+			branchOutput: branches1
+		};
+	}
+	if (name2 < name1) {
+		return {
+			backbone: backbone2,
+			branchOutput: branches2
+		};
+	}
+
 	return {
 		backbone: backbone1,
 		branchOutput: branches1
@@ -525,9 +571,9 @@ function name(skeleton, side) { // side=true for branches, side=false for molecu
 	}	
 	else if (side === false) {
 		x = findBranches(skeleton);
+		backbone = x.backbone;
 		branches = x.branchOutput;
 		branches = nameBranches(branches);
-		backbone = x.backbone;
 	}
 
 
