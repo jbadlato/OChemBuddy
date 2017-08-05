@@ -130,6 +130,25 @@ function arrayAdd(arr1, arr2) {	// Creates a new array with all elements of arr1
 	return newArr;
 }
 
+function getAllIndices(arr, val) {
+	var indices = [];
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i] === val) {
+			indices.push(i);
+		}
+	}
+	return indices;
+}
+
+function isItemInArray(array, item) { // for use in the longest path algorithm
+	for (var i = 0; i < array.length; i++) {
+		if (array[i][0] === item[0] && array[i][1] === item[1]) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function checkForRings(adjList) { // returns true if there is a ring in the structure; returns false if not.
 	adjListCopy = clone(adjList);
 	endPoints = [];
@@ -209,6 +228,7 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 		}
 	}
 
+	competingPaths = []; // each element in competingPaths is a pair of points: the start and end point of a longest path.
 	longestPathLength = 0;
 	for (var i = 0; i < endPts.length; i++) {
 		startPt = endPts[i];
@@ -233,9 +253,27 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 			}
 			searched = searched.concat(newNodes);
 		}
+		inds = getAllIndices(pathLengths, getMaxOfArray(pathLengths));
 		if (getMaxOfArray(pathLengths) > longestPathLength) {
 			carbon1 = endPts[i];
-			carbonLast = pathLengths.indexOf(getMaxOfArray(pathLengths));
+			competingPaths = [];
+			for (var j = 0; j < inds.length; j++) {
+				newPath = [carbon1, inds[j]];
+				newPath = newPath.sort(function(a,b) {return a-b});
+				if (!isItemInArray(competingPaths, newPath)) {
+					competingPaths.push(newPath);
+				}
+			}
+		}
+		if (getMaxOfArray(pathLengths) === longestPathLength) {
+			carbon1 = endPts[i];
+			for (var j = 0; j < inds.length; j++) {
+				newPath = [carbon1, inds[j]];
+				newpath = newPath.sort(function(a,b) {return a-b});
+				if (!isItemInArray(competingPaths, newPath)) {
+					competingPaths.push(newPath);
+				}
+			}
 		}
 		longestPathLength = Math.max(longestPathLength, getMaxOfArray(pathLengths));
 	}
@@ -246,29 +284,36 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 	}
 
 	// Find the actual path, not just the length:
-	discovered = [carbon1];
-	testPath = [carbon1];
-	currNode = carbon1;
-	while (testPath.length < longestPathLength+1) {
-		for (var k = 1; k < (testPath.length - 1); k++) { // Delete nodes from test path except the end point and the start point
-			ind = discovered.indexOf(testPath[k]);
-			discovered.splice(ind, 1);
-		}
+	for (var i = 0; i < competingPaths.length; i++) {
+		carbon1 = competingPaths[i][0];
+		endCarbon = competingPaths[i][1];
+		discovered = clone(endPts);
+		discovered.splice(discovered.indexOf(endCarbon), 1);
 		testPath = [carbon1];
 		currNode = carbon1;
-		while (!arrayContains(discovered, adjList[currNode])) { // While there is an undiscovered node connected to current node THIS LOOP IS INFINITE	
-			for (var j = 0; j < adjList[currNode].length; j++) {
-				x = adjList[currNode][j];
-				if (discovered.indexOf(x) === -1) { // Only if we haven't used the node yet
-					discovered.push(x);
-					testPath.push(x);
-					currNode = x;
-					break;
+		while (testPath.length < longestPathLength+1) {
+			for (var k = 1; k < (testPath.length - 1); k++) { // Delete nodes from test path except the end point and the start point
+				ind = discovered.indexOf(testPath[k]);
+				discovered.splice(ind, 1);
+			}
+			testPath = [carbon1];
+			currNode = carbon1;
+			while (!arrayContains(discovered, adjList[currNode])) { // While there is an undiscovered node connected to current node
+				for (var j = 0; j < adjList[currNode].length; j++) {
+					x = adjList[currNode][j];
+					if (discovered.indexOf(x) === -1) { // Only if we haven't used the node yet
+						discovered.push(x);
+						testPath.push(x);
+						currNode = x;
+						break;
+					}
 				}
 			}
 		}
+		competingPaths[i] = testPath;
 	}
 	return testPath;
+
 }
 
 function findLongestPathFromZero(adjList) {
@@ -403,8 +448,8 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 	for (var i = 0; i < branches2.length; i++) {
 		numbers2.push(branches2[i][0]);
 	}
-	numbers1.sort();
-	numbers2.sort();
+	numbers1.sort(function(a,b) {return a-b});
+	numbers2.sort(function(a,b) {return a-b});
 	for (var i = 0; i < numbers1.length; i++) {
 		if (numbers1[i] < numbers2[i]) {
 			return {
@@ -419,20 +464,17 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 			};
 		}
 	}
+	//*******
 	// Rule A-2.4: If the substituents are in equivalent positions:
 	skel1 = clone(skel); //renumber skeleton so we can name from 0 position of backbone1
+	skel1[0] = skel[backbone1[0]];
+	skel1[backbone1[0]] = skel[0];
 	for (var i = 0; i < skel1.length; i++) {
-		if (i === 0) {
-			skel1[i] = skel[backbone1[0]];
-		}
-		if (i === backbone1[0]) {
-			skel1[i] = skel[0];
-		}
 		for (var j = 0; j < skel1[i].length; j++) {
 			if (skel1[i][j] === 0) {
 				skel1[i][j] = backbone1[0];
 			}
-			if (skel1[i][j] === backbone1[0]) {
+			else if (skel1[i][j] === backbone1[0]) {
 				skel1[i][j] = 0;
 			}
 		}
@@ -563,6 +605,7 @@ function lettersOnly(string) {
 	return letters;
 }
 
+var backboneStore = [];
 function name(skeleton, side) { // side=true for branches, side=false for molecules
 	if (side === true) {
 		branches = findBrBranches(skeleton);
@@ -573,7 +616,9 @@ function name(skeleton, side) { // side=true for branches, side=false for molecu
 		x = findBranches(skeleton);
 		backbone = x.backbone;
 		branches = x.branchOutput;
+		backboneStore.push(backbone);
 		branches = nameBranches(branches);
+		backbone = backboneStore.pop();
 	}
 
 
