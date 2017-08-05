@@ -341,8 +341,8 @@ function findLongestPathFromZero(adjList) {
 	return testPath;
 }
 
-function findBranches(skel) { 	
-	backbone = findLongestPath(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
+function findBranchesUtil(skel, backbone) { 	
+	//backbone = findLongestPath(skel); // backbone actually renumbers the carbons to how they will be numbered in the name output.
 	allBranches = []; // Will contain all the subgraphs representing branches.
 	for (var i = 0; i < backbone.length; i++) { // Ci is the carbon in the backbone at which we are looking for branches.
 		Ci = backbone[i];
@@ -385,6 +385,44 @@ function findBranches(skel) {
 	}
 
 	return allBranches;
+}
+
+function findBranches(skel) { // numbers the backbone such that the side chains have the lowest numbers possible (Rule A2.2)
+	backbone1 = findLongestPath(skel);
+	backbone2 = [];
+	for (var i = 0; i < backbone1.length; i++) {
+		backbone2[i] = backbone1[backbone1.length-i-1];
+	}
+	branches1 = findBranchesUtil(skel, backbone1);
+	branches2 = findBranchesUtil(skel, backbone2);
+	numbers1 = [];
+	numbers2 = [];
+	for (var i = 0; i < branches1.length; i++) {
+		numbers1.push(branches1[i][0]);
+	}
+	for (var i = 0; i < branches2.length; i++) {
+		numbers2.push(branches2[i][0]);
+	}
+	numbers1.sort();
+	numbers2.sort();
+	for (var i = 0; i < numbers1.length; i++) {
+		if (numbers1[i] < numbers2[i]) {
+			return {
+				backbone: backbone1,
+				branchOutput: branches1
+			};
+		}
+		if (numbers2[i] < numbers1[i]) {
+			return {
+				backbone: backbone2,
+				branchOutput: branches2
+			};
+		}
+	}
+	return {
+		backbone: backbone1,
+		branchOutput: branches1
+	};
 }
 
 function findBrBranches(skel) {
@@ -486,9 +524,10 @@ function name(skeleton, side) { // side=true for branches, side=false for molecu
 		backbone = findLongestPathFromZero(skeleton);
 	}	
 	else if (side === false) {
-		branches = findBranches(skeleton);
+		x = findBranches(skeleton);
+		branches = x.branchOutput;
 		branches = nameBranches(branches);
-		backbone = findLongestPath(skeleton);
+		backbone = x.backbone;
 	}
 
 
