@@ -142,6 +142,10 @@ function getMaxOfArray(numArray) {
 	return Math.max.apply(null, numArray);
 }
 
+function getMinOfArray(numArray) {
+	return Math.min.apply(null, numArray);
+}
+
 function arrayContains(arr1, arr2) { // Returns true if arr1 contains every element of arr2. Returns false otherwise.
 	for (var i = 0; i < arr2.length; i++) {
 		if (arr1.indexOf(arr2[i]) === -1) {
@@ -423,6 +427,23 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 				inferiorPaths.push(i-1);
 			}
 		}
+	}
+
+	// Rule A-2.6c: Pick the chain having the greatest number of carbon atoms in the smaller chains.
+	maxChainSizes = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		sizes = [];
+		pathsBranches = findBranchesUtil(adjList, competingPaths[i]);
+		for (var j = 0; j < pathsBranches.length; j++) {
+			sizes.push(pathsBranches[j][1].length);
+		}
+		maxChainSizes.push(getMaxOfArray(sizes));
+	}
+	bestPaths = getAllIndices(maxChainSizes, getMinOfArray(maxChainSizes));
+	copy2 = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < bestPaths.length; i++) {
+		competingPaths.push(copy2[bestPaths[i]]);
 	}
 	return competingPaths[0];
 
