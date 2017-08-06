@@ -312,7 +312,29 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 		}
 		competingPaths[i] = testPath;
 	}
-	return testPath;
+	// Rule 2.6a: Pick the chain with the greatest number of side chains.
+	competingPathsSideChains = new Array(competingPaths.length).fill(0);
+	for (var i = 0; i < competingPaths.length; i++) {
+		for (var j = 0; j < competingPaths[i].length; j++) {
+			for (var k = 0; k < adjList[competingPaths[i][j]].length; k++) {
+				if (competingPaths[i].indexOf(adjList[competingPaths[i][j]][k]) === -1) {
+					competingPathsSideChains[i]++;
+				}
+			}
+		}
+	}
+	mostSideChains = getAllIndices(competingPathsSideChains, getMaxOfArray(competingPathsSideChains));
+	copy = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < mostSideChains.length; i++) {
+		competingPaths.push(copy[mostSideChains[i]]);
+	}
+	return competingPaths[0];
+	
+	// Rule 2.6b: Pick the chain whose side chains have the lowest-numbered locants.
+
+
+	//return testPath;
 
 }
 
