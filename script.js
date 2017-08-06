@@ -546,8 +546,38 @@ function findBranchesUtil(skel, backbone) {
 	return allBranches;
 }
 
-function getLocantsFromName(string) {
-	
+function xParenth(s) {	
+	// This function replaces segments of a string in between '(' and ')' with '...xxxx...' (Both '(' and ')' are necessary)
+	while (s.indexOf(')') !== -1 && s.indexOf('(') !== -1) { // until there are no more ')'
+		closeP = s.lastIndexOf(')');
+		openP = s.lastIndexOf('(',closeP); //closest '('
+		closeP = s.indexOf(')', openP); //closest ')'. Now have the innermost set of ()
+		x = 'x'.repeat(closeP - openP + 1);
+		replaceThis = s.substring(openP, closeP + 1);
+		s = s.replace(replaceThis, x);
+	}
+	return s;
+}
+
+function getLocantsFromName(str) {
+	str = xParenth(str);
+	var matches = str.match(/[0-9]+/g).map(function(n){return +(n);});
+	return matches;
+}
+
+function arrayGreaterThan(arr1, arr2) { // returns true if arr1 > arr2, returns false otherwise.
+	for (var i = 0; i < arr1.length; i++) {
+		if (arr1[i] === arr2[i]) {
+			continue;
+		}
+		if (arr1[i] < arr2[i]) {
+			return false;
+		}
+		if (arr1[i] > arr2[i]) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function findBranches(skel) { // numbers the backbone such that the side chains have the lowest numbers possible (Rule A-2.2)
@@ -556,8 +586,6 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 	for (var i = 0; i < backbone1.length; i++) {
 		backbone2[i] = backbone1[backbone1.length-i-1];
 	}
-	console.log('backbone1: ' + stringArray(backbone1));
-	console.log('backbone2: ' + stringArray(backbone2));
 	branches1 = findBranchesUtil(skel, backbone1);
 	branches2 = findBranchesUtil(skel, backbone2);
 	numbers1 = [];
@@ -613,16 +641,15 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 	}
 	name1 = name(skel1, true);
 	name2 = name(skel2, true);
-	console.log('name1: ' + name1);
-	console.log('name2: ' + name2);
-	console.log(name2 < name1);
-	if (name1 < name2) {
+	locants1 = getLocantsFromName(name1);
+	locants2 = getLocantsFromName(name2);
+	if (arrayGreaterThan(locants2, locants1)) {
 		return {
 			backbone: backbone1,
 			branchOutput: branches1
 		};
 	}
-	if (name2 < name1) {
+	if (arrayGreaterThan(locants1, locants2)) {
 		return {
 			backbone: backbone2,
 			branchOutput: branches2
