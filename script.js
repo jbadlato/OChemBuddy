@@ -315,7 +315,7 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 
 	// Deal with methane:
 	if (adjList.length === 1) {
-		carbon1 = 0;
+		return [0];
 	}
 
 	// Find the actual path, not just the length:
@@ -445,10 +445,28 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 	for (var i = 0; i < bestPaths.length; i++) {
 		competingPaths.push(copy2[bestPaths[i]]);
 	}
+
+	// Rule A-2.6d: Pick the chain with the least number of branched side chains.
+	numOfBranchedBranches = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		numOfBranchedBranches.push(0);
+		pathsBranches = findBranchesUtil(adjList, competingPaths[i]);
+		pathsBranches = checkForBranchedBranch(pathsBranches);
+		for (var j = 0; j < pathsBranches.length; j++) {
+			if (pathsBranches[j][2] === true) {
+				numOfBranchedBranches[i]++;
+			}
+		}
+	}
+	bestPaths = getAllIndices(numOfBranchedBranches, getMinOfArray(numOfBranchedBranches));
+	copy2 = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < bestPaths.length; i++) {
+		competingPaths.push(copy2[bestPaths[i]]);
+	}
+
+
 	return competingPaths[0];
-
-	//return testPath;
-
 }
 
 function findLongestPathFromZero(adjList) {
@@ -582,7 +600,7 @@ function xParenth(s) {
 
 function getLocantsFromName(str) {
 	str = xParenth(str);
-	var matches = str.match(/[0-9]+/g).map(function(n){return +(n);});
+	var matches = str.match(/[0-9]+/g).map(function(n){return +(n);});	
 	return matches;
 }
 
