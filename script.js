@@ -11,8 +11,13 @@ function test() {
 		x = name(drawnGraph, false);
 		alert(x);
 	}
+	console.log('done');
 }
 
+/*var copyStore = [];
+var qStore = [];
+var lenStore = [];
+var objStore = [];*/
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined
     if (null == obj || "object" != typeof obj) return obj;
@@ -27,8 +32,18 @@ function clone(obj) {
     // Handle Array
     if (obj instanceof Array) {
         var copy = [];
-        for (var i = 0, len = obj.length; i < len; i++) {
-            copy[i] = clone(obj[i]);
+        for (var q = 0, len = obj.length; q < len; q++) {
+        	copy[q] = clone(obj[q]);
+        	/*copyStore.push(copy);
+        	qStore.push(q);
+        	lenStore.push(len);
+        	objStore.push(obj);
+            x = clone(obj[q]);
+            obj = objStore.pop();
+            len = lenStore.pop();
+            q = qStore.pop();
+            copy = copyStore.pop();
+            copy[q] = x;*/
         }
         return copy;
     }
@@ -43,6 +58,22 @@ function clone(obj) {
     }
 
     throw new Error("Unable to copy obj! Its type isn't supported.");
+}
+
+function stringArray(arr) {
+    x = '';
+    if (arr instanceof Array) {
+        x += '[';
+        for (var i = 0; i < arr.length; i++) {
+            if (i > 0 ) {
+                x += ',';
+            }
+            x += stringArray(arr[i]);            
+        }
+        x += ']';
+        return x;
+    }
+    return x += arr;
 }
 
 var numToPrefix = {
@@ -324,15 +355,76 @@ function findLongestPath(adjList) { // returns length of longest path possible w
 		}
 	}
 	mostSideChains = getAllIndices(competingPathsSideChains, getMaxOfArray(competingPathsSideChains));
-	copy = clone(competingPaths);
+	copy2 = clone(competingPaths);
 	competingPaths = [];
 	for (var i = 0; i < mostSideChains.length; i++) {
-		competingPaths.push(copy[mostSideChains[i]]);
+		competingPaths.push(copy2[mostSideChains[i]]);
 	}
-	return competingPaths[0];
 	
 	// Rule 2.6b: Pick the chain whose side chains have the lowest-numbered locants.
+	competingPathsLocants = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		competingPathsLocants.push([]);
+	}
+	for (var i = 0; i < competingPaths.length; i++) {
+		bone = competingPaths[i];
+		for (var j = 0; j < bone.length; j++) {
+			Cj = bone[j];
+			for (var k = 0; k < adjList[Cj].length; k++) {
+				Ck = adjList[Cj][k];
+				if (bone.indexOf(Ck) === -1) {
+					competingPathsLocants[i].push(j);
+				}
+			}
+		}
+	}
+	for (var i = 0; i < competingPathsLocants.length; i++) {
+		competingPathsLocants[i].sort(function(a,b){return a-b});
+	}
+	// Check the backwards numbering to see if it is better:
+	for (var i = 0; i < competingPathsLocants.length; i++) {
+		locants1 = clone(competingPathsLocants[i]);
+		locants2 = [];
+		for (var j = 0; j < locants1.length; j++) {
+			newLocant = competingPaths[0].length - 1 - locants1[locants1.length - j - 1];
+			locants2.push(newLocant);
+		}
+		if (stringArray(locants2) < stringArray(locants1)) {
+			competingPathsLocants[i] = locants2;
+		}
+	}
 
+	inferiorPaths = [];
+	for (var i = 1; i < competingPaths.length; i++) {
+		if (stringArray(competingPathsLocants[i-1]) < stringArray(competingPathsLocants[i])) {
+			inferiorPaths.push(i);
+		}
+		else if (stringArray(competingPathsLocants[i]) < stringArray(competingPathsLocants[i-1])) {
+			inferiorPaths.push(i-1);
+		}
+	}
+	while (inferiorPaths.length > 0) {
+		copyPaths = clone(competingPaths);
+		competingPaths = [];
+		copyLocants = clone(competingPathsLocants);
+		competingPathsLocants = [];
+		for (var i = 0; i < copyPaths.length; i++) {
+			if (inferiorPaths.indexOf(i) === -1) {
+				competingPaths.push(copyPaths[i]);
+				competingPathsLocants.push(copyLocants[i]);	
+			}
+		}
+		inferiorPaths = [];
+		for (var i = 1; i < competingPaths.length; i++) {
+			if (stringArray(competingPathsLocants[i-1]) < stringArray(competingPathsLocants[i])) {
+				inferiorPaths.push(i);
+			}
+			else if (stringArray(competingPathsLocants[i]) < stringArray(competingPathsLocants[i-1])) {
+				inferiorPaths.push(i-1);
+			}
+		}
+	}
+	return competingPaths[0];
 
 	//return testPath;
 
@@ -454,12 +546,18 @@ function findBranchesUtil(skel, backbone) {
 	return allBranches;
 }
 
+function getLocantsFromName(string) {
+	
+}
+
 function findBranches(skel) { // numbers the backbone such that the side chains have the lowest numbers possible (Rule A-2.2)
 	backbone1 = findLongestPath(skel);
 	backbone2 = [];
 	for (var i = 0; i < backbone1.length; i++) {
 		backbone2[i] = backbone1[backbone1.length-i-1];
 	}
+	console.log('backbone1: ' + stringArray(backbone1));
+	console.log('backbone2: ' + stringArray(backbone2));
 	branches1 = findBranchesUtil(skel, backbone1);
 	branches2 = findBranchesUtil(skel, backbone2);
 	numbers1 = [];
@@ -486,7 +584,6 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 			};
 		}
 	}
-	//*******
 	// Rule A-2.4: If the substituents are in equivalent positions:
 	skel1 = clone(skel); //renumber skeleton so we can name from 0 position of backbone1
 	skel1[0] = skel[backbone1[0]];
@@ -516,6 +613,9 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 	}
 	name1 = name(skel1, true);
 	name2 = name(skel2, true);
+	console.log('name1: ' + name1);
+	console.log('name2: ' + name2);
+	console.log(name2 < name1);
 	if (name1 < name2) {
 		return {
 			backbone: backbone1,
@@ -660,11 +760,11 @@ function name(skeleton, side) { // side=true for branches, side=false for molecu
 			subsPositions[subsPositions.length - 1].push(branches[i][0]);
 		}
 	}
-	copy = subsPositions;
-	subsPositions = new Array(copy.length).fill('');
-	for (var k = 0; k < copy.length; k++) {
-		for (var h = 0; h < copy[k].length; h++) {
-			subsPositions[k] = subsPositions[k] + (copy[k][h]+ 1) + ',';
+	copyP = clone(subsPositions);
+	subsPositions = new Array(copyP.length).fill('');
+	for (var k = 0; k < copyP.length; k++) {
+		for (var h = 0; h < copyP[k].length; h++) {
+			subsPositions[k] = subsPositions[k] + (copyP[k][h]+ 1) + ',';
 		}
 		subsPositions[k] = subsPositions[k].substring(0,subsPositions[k].length - 1);
 	}
