@@ -14,10 +14,6 @@ function test() {
 	console.log('done');
 }
 
-/*var copyStore = [];
-var qStore = [];
-var lenStore = [];
-var objStore = [];*/
 function clone(obj) {
     // Handle the 3 simple types, and null or undefined
     if (null == obj || "object" != typeof obj) return obj;
@@ -34,16 +30,6 @@ function clone(obj) {
         var copy = [];
         for (var q = 0, len = obj.length; q < len; q++) {
         	copy[q] = clone(obj[q]);
-        	/*copyStore.push(copy);
-        	qStore.push(q);
-        	lenStore.push(len);
-        	objStore.push(obj);
-            x = clone(obj[q]);
-            obj = objStore.pop();
-            len = lenStore.pop();
-            q = qStore.pop();
-            copy = copyStore.pop();
-            copy[q] = x;*/
         }
         return copy;
     }
@@ -600,7 +586,13 @@ function xParenth(s) {
 
 function getLocantsFromName(str) {
 	str = xParenth(str);
-	var matches = str.match(/[0-9]+/g).map(function(n){return +(n);});	
+	x = str.match(/[0-9]+/g);
+	if (x != null) {
+		var matches = str.match(/[0-9]+/g).map(function(n){return +(n);});	
+	}
+	else {
+		matches = [];
+	}
 	return matches;
 }
 
@@ -653,27 +645,29 @@ function findBranches(skel) { // numbers the backbone such that the side chains 
 	}
 	// Rule A-2.4: If the substituents are in equivalent positions:
 	skel1 = clone(skel); //renumber skeleton so we can name from 0 position of backbone1
-	skel1[0] = skel[backbone1[0]];
-	skel1[backbone1[0]] = skel[0];
+	backCopy = clone(backbone1);
+	skel1[0] = clone(skel[backCopy[0]]);
+	skel1[backCopy[0]] = clone(skel[0]);
 	for (var i = 0; i < skel1.length; i++) {
 		for (var j = 0; j < skel1[i].length; j++) {
 			if (skel1[i][j] === 0) {
-				skel1[i][j] = backbone1[0];
+				skel1[i][j] = backCopy[0];
 			}
-			else if (skel1[i][j] === backbone1[0]) {
+			else if (skel1[i][j] === backCopy[0]) {
 				skel1[i][j] = 0;
 			}
 		}
 	}
 	skel2 = clone(skel);
-	skel2[0] = skel[backbone2[0]];
-	skel2[backbone2[0]] = skel[0];
+	backCopy = clone(backbone2);
+	skel2[0] = clone(skel[backCopy[0]]);
+	skel2[backCopy[0]] = clone(skel[0]);
 	for (var i = 0; i < skel2.length; i++) {
 		for (var j = 0; j < skel2[i].length; j++) {
 			if (skel2[i][j] == 0) {
-				skel2[i][j] = backbone2[0];
+				skel2[i][j] = backCopy[0];
 			}
-			else if (skel2[i][j] === backbone2[0]) {
+			else if (skel2[i][j] === backCopy[0]) {
 				skel2[i][j] = 0;
 			}
 		}
