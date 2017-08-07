@@ -16,9 +16,8 @@ canvas {
 	background-color: #CCC;
 }
 
-p {
+p, h1 {
 	color: #DDD;
-	font-size: 200%;
 }
 
 #nameButton {
@@ -31,14 +30,16 @@ p {
 }
 
 .pButt {
-	width: 70px;
+	width: 100px;
 	display: inline-block;
 	float: right;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 
 .drawUI {
 	display: table;
-	padding-right: 70px;	/* same as .pButt width to center the canvas */
+	padding-right: 100px;	/* same as .pButt width to center the canvas */
 	margin-right: auto;
 	margin-left: auto;
 }
@@ -51,4 +52,10 @@ p {
 #nameOutput {
 	margin-top: 25px;
 	text-align: center;
+	font-size: 175%;
+}
+
+#ochembuddy {
+	margin-top: 50px;
+	text-align: right;
 }
