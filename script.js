@@ -4,7 +4,11 @@ function test() {
 		return false;
 	}
 	if (!checkForConnectivity(drawnGraph)) {
-		alert('Only input one molecule at a time');
+		alert('Only input one molecule at a time!');
+		return false;
+	}
+	if (!checkForBondMax(drawnGraph)) {
+		alert('Carbons cannot have more than 4 bonds!');
 		return false;
 	}
 	else{
@@ -211,6 +215,16 @@ function checkForRings(adjList) { // returns true if there is a ring in the stru
 	else {
 		return true;
 	}
+}
+
+function checkForBondMax(adjList) { // returns true if no carbon has >4 bonds. returns false otherwise.
+	for (var i = 0; i < adjList.length; i++) {
+		numBonds = adjList[i].length;
+		if (numBonds > 4) {
+			return false;
+		}
+	}
+	return true;
 }
 
 function checkForConnectivity(adjList) { // returns true if the graph is strongly connected; returns false if not.
