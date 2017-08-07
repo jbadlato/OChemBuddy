@@ -29,6 +29,14 @@ function changeToDraw() {
 	cursorType = 'draw';
 }
 
+function eraseAll() {
+	clrScrn();
+	carbonPositions = [];
+	drawnGraph = [];
+	cursorType = 'draw';
+	drawGraph();
+}
+
 function getMousePos(canvas, evt) {
 	var rect = canvas.getBoundingClientRect();
 	return {

@@ -9,9 +9,11 @@
 <body>
   <div class="drawUI">
     <div class="palette">
+      <button type="button" onclick="changeToDraw()" class="pButt" id="drawButton">Draw</button>
+      <br/>
       <button type="button" onclick="changeToErase()" class="pButt" id="eraseButton">Erase</button>
       <br/>
-      <button type="button" onclick="changeToDraw()" class="pButt" id="drawButton">Draw</button>
+      <button type="button" onclick="eraseAll()" class="pButt" id="clearAllButton">Clear All</button>
     </div>
     <canvas id="sketchPad" width="500" height="500"></canvas>
   </div>
