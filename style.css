@@ -1,6 +1,24 @@
+* {
+	background-color: #333;
+	font-family: 'Questrial', sans-serif;
+}
+
+button {
+	background-color: #DDD;
+	font-size: 120%;
+	border-radius: 3px;
+}
+
 canvas {
-	border: 1px solid #000;
+	border: 2px solid #111;
+	border-radius: 10px;	
 	display: inline-block;
+	background-color: #CCC;
+}
+
+p {
+	color: #DDD;
+	font-size: 200%;
 }
 
 #nameButton {
@@ -8,17 +26,19 @@ canvas {
 	margin-top: 25px;
 	margin-right: auto;
 	margin-left: auto;
+	font-size: 150%;
+	padding: 10px;
 }
 
 .pButt {
-	width: 50px;
+	width: 70px;
 	display: inline-block;
 	float: right;
 }
 
 .drawUI {
 	display: table;
-	padding-right: 50px;	/* same as .pButt width to center the canvas */
+	padding-right: 70px;	/* same as .pButt width to center the canvas */
 	margin-right: auto;
 	margin-left: auto;
 }
