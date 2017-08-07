@@ -465,6 +465,7 @@ function findLongestPathFromZero(adjList) {
 		}
 	}
 
+	competingPaths = [];
 	longestPathLength = 0;
 	startPt = 0;
 	pathLengths = new Array(adjList.length).fill(-1);
@@ -488,41 +489,185 @@ function findLongestPathFromZero(adjList) {
 		}
 		searched = searched.concat(newNodes);
 	}
+	inds = getAllIndices(pathLengths, getMaxOfArray(pathLengths));
 	if (getMaxOfArray(pathLengths) > longestPathLength) {
 		carbon1 = 0;
-		carbonLast = pathLengths.indexOf(getMaxOfArray(pathLengths));
+		competingPaths = [];
+		for (var j = 0; j < inds.length; j++) {
+			newPath = [carbon1, inds[j]];
+			newPath = newPath.sort(function(a,b){return a-b});
+			if (!isItemInArray(competingPaths, newPath)) {
+				competingPaths.push(newPath);
+			}
+		}
+	}
+	if (getMaxOfArray(pathLengths) === longestPathLength) {
+		carbon1 = 0;
+		for (var j = 0; j < inds.length; j++) {
+			newPath = [carbon1, inds[j]];
+			newPath = newPath.sort(function(a,b){return a-b});
+			if (!isItemInArray(competingPaths, newPath)) {
+				competingPaths.push(newPath);
+			}
+		}
 	}
 	longestPathLength = Math.max(longestPathLength, getMaxOfArray(pathLengths));
 
 	// Deal with methane:
 	if (adjList.length === 1) {
-		carbon1 = 0;
+		return [0];
 	}
 
 	// Find the actual path, not just the length:
-	discovered = [carbon1];
-	testPath = [carbon1];
-	currNode = carbon1;
-	while (testPath.length < longestPathLength+1) {
-		for (var k = 1; k < (testPath.length - 1); k++) { // Delete nodes from test path except the end point and the start point
-			ind = discovered.indexOf(testPath[k]);
-			discovered.splice(ind, 1);
-		}
+	for (var i = 0; i < competingPaths.length; i++) {
+		carbon1 = competingPaths[i][0];
+		endCarbon = competingPaths[i][1];
+		discovered = clone(endPts);
+		discovered.push(0);
+		discovered.splice(discovered.indexOf(endCarbon), 1);
 		testPath = [carbon1];
 		currNode = carbon1;
-		while (!arrayContains(discovered, adjList[currNode])) { // While there is an undiscovered node connected to current node
-			for (var j = 0; j < adjList[currNode].length; j++) {
-				x = adjList[currNode][j];
-				if (discovered.indexOf(x) === -1) { // Only if we haven't used the node yet
-					discovered.push(x);
-					testPath.push(x);
-					currNode = x;
-					break;
+		while (testPath.length < longestPathLength+1) {
+			for (var k = 1; k < (testPath.length - 1); k++) { // Delete nodes from test path except the end point and the start point
+				ind = discovered.indexOf(testPath[k]);
+				discovered.splice(ind, 1);
+			}
+			testPath = [carbon1];
+			currNode = carbon1;
+			while (!arrayContains(discovered, adjList[currNode])) { // While there is an undiscovered node connected to current node
+				for (var j = 0; j < adjList[currNode].length; j++) {
+					x = adjList[currNode][j];
+					if (discovered.indexOf(x) === -1) { // Only if we haven't used the node yet
+						discovered.push(x);
+						testPath.push(x);
+						currNode = x;
+						break;
+					}
+				}
+			}
+		}
+		competingPaths[i] = testPath;
+	}
+	// Rule 2.6a: Pick the chain with the greatest number of side chains.
+	competingPathsSideChains = new Array(competingPaths.length).fill(0);
+	for (var i = 0; i < competingPaths.length; i++) {
+		for (var j = 0; j < competingPaths[i].length; j++) {
+			for (var k = 0; k < adjList[competingPaths[i][j]].length; k++) {
+				if (competingPaths[i].indexOf(adjList[competingPaths[i][j]][k]) === -1) {
+					competingPathsSideChains[i]++;
 				}
 			}
 		}
 	}
-	return testPath;
+	mostSideChains = getAllIndices(competingPathsSideChains, getMaxOfArray(competingPathsSideChains));
+	copy2 = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < mostSideChains.length; i++) {
+		competingPaths.push(copy2[mostSideChains[i]]);
+	}
+	
+	// Rule 2.6b: Pick the chain whose side chains have the lowest-numbered locants.
+	competingPathsLocants = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		competingPathsLocants.push([]);
+	}
+	for (var i = 0; i < competingPaths.length; i++) {
+		bone = competingPaths[i];
+		for (var j = 0; j < bone.length; j++) {
+			Cj = bone[j];
+			for (var k = 0; k < adjList[Cj].length; k++) {
+				Ck = adjList[Cj][k];
+				if (bone.indexOf(Ck) === -1) {
+					competingPathsLocants[i].push(j);
+				}
+			}
+		}
+	}
+	for (var i = 0; i < competingPathsLocants.length; i++) {
+		competingPathsLocants[i].sort(function(a,b){return a-b});
+	}
+	// Check the backwards numbering to see if it is better:
+	for (var i = 0; i < competingPathsLocants.length; i++) {
+		locants1 = clone(competingPathsLocants[i]);
+		locants2 = [];
+		for (var j = 0; j < locants1.length; j++) {
+			newLocant = competingPaths[0].length - 1 - locants1[locants1.length - j - 1];
+			locants2.push(newLocant);
+		}
+		if (stringArray(locants2) < stringArray(locants1)) {
+			competingPathsLocants[i] = locants2;
+		}
+	}
+
+	inferiorPaths = [];
+	for (var i = 1; i < competingPaths.length; i++) {
+		if (stringArray(competingPathsLocants[i-1]) < stringArray(competingPathsLocants[i])) {
+			inferiorPaths.push(i);
+		}
+		else if (stringArray(competingPathsLocants[i]) < stringArray(competingPathsLocants[i-1])) {
+			inferiorPaths.push(i-1);
+		}
+	}
+	while (inferiorPaths.length > 0) {
+		copyPaths = clone(competingPaths);
+		competingPaths = [];
+		copyLocants = clone(competingPathsLocants);
+		competingPathsLocants = [];
+		for (var i = 0; i < copyPaths.length; i++) {
+			if (inferiorPaths.indexOf(i) === -1) {
+				competingPaths.push(copyPaths[i]);
+				competingPathsLocants.push(copyLocants[i]);	
+			}
+		}
+		inferiorPaths = [];
+		for (var i = 1; i < competingPaths.length; i++) {
+			if (stringArray(competingPathsLocants[i-1]) < stringArray(competingPathsLocants[i])) {
+				inferiorPaths.push(i);
+			}
+			else if (stringArray(competingPathsLocants[i]) < stringArray(competingPathsLocants[i-1])) {
+				inferiorPaths.push(i-1);
+			}
+		}
+	}
+
+	// Rule A-2.6c: Pick the chain having the greatest number of carbon atoms in the smaller chains.
+	maxChainSizes = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		sizes = [];
+		pathsBranches = findBranchesUtil(adjList, competingPaths[i]);
+		for (var j = 0; j < pathsBranches.length; j++) {
+			sizes.push(pathsBranches[j][1].length);
+		}
+		maxChainSizes.push(getMaxOfArray(sizes));
+	}
+	bestPaths = getAllIndices(maxChainSizes, getMinOfArray(maxChainSizes));
+	copy2 = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < bestPaths.length; i++) {
+		competingPaths.push(copy2[bestPaths[i]]);
+	}
+
+	// Rule A-2.6d: Pick the chain with the least number of branched side chains.
+	numOfBranchedBranches = [];
+	for (var i = 0; i < competingPaths.length; i++) {
+		numOfBranchedBranches.push(0);
+		pathsBranches = findBranchesUtil(adjList, competingPaths[i]);
+		pathsBranches = checkForBranchedBranch(pathsBranches);
+		for (var j = 0; j < pathsBranches.length; j++) {
+			if (pathsBranches[j][2] === true) {
+				numOfBranchedBranches[i]++;
+			}
+		}
+	}
+	bestPaths = getAllIndices(numOfBranchedBranches, getMinOfArray(numOfBranchedBranches));
+	copy2 = clone(competingPaths);
+	competingPaths = [];
+	for (var i = 0; i < bestPaths.length; i++) {
+		competingPaths.push(copy2[bestPaths[i]]);
+	}
+
+
+	return competingPaths[0];
 }
 
 function findBranchesUtil(skel, backbone) { 	
