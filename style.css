@@ -27,3 +27,8 @@ canvas {
 	float: left;
 	padding-top: 5px;
 }
+
+#nameOutput {
+	margin-top: 25px;
+	text-align: center;
+}

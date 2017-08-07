@@ -13,9 +13,17 @@ function test() {
 	}
 	else{
 		x = name(drawnGraph, false);
-		alert(x);
+		printToPage(x);
 	}
 	console.log('done');
+}
+
+function printToPage(str) {
+	var e;
+	e = document.getElementById("nameOutput");
+	if (e) {
+		e.innerHTML = str;
+	}
 }
 
 function clone(obj) {
