@@ -1,0 +1,15 @@
+{
+  "name": "ochem-buddy",
+  "version": "1.0.0",
+  "description": "organic molecule namer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
