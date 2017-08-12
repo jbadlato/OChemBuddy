@@ -16,8 +16,21 @@ canvas {
 	background-color: #CCC;
 }
 
-p, h1 {
+p, h1, li {
 	color: #DDD;
+}
+
+li {
+	margin: 10px;
+}
+
+#directions {
+	margin-left: 100px;
+	margin-top: 50px;
+}
+
+h1 {
+	text-align: center;
 }
 
 #nameButton {
@@ -55,7 +68,14 @@ p, h1 {
 	font-size: 175%;
 }
 
-#ochembuddy {
+#credits {
+	display: inline-block;
 	margin-top: 50px;
-	text-align: right;
+	float:left;
+}
+
+#ochembuddy {
+	display: inline-block;
+	margin-top: 50px;
+	float: right;
 }

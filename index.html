@@ -7,7 +7,18 @@
   <link href="https://fonts.googleapis.com/css?family=Questrial" rel="stylesheet">
 </head>
 
-<body>
+<body link="#FFF" vlink="#FFF", alink="#FFF">
+<h1>Welcome to OChem Buddy!</h1>
+<div id="directions">
+  <p>Directions:</p>
+  <ol>
+    <li>Draw a carbon by clicking anywhere on the canvas</li>
+    <li>Draw bonds by clicking &amp; dragging between carbons</li>
+    <li>Click "Name My Molecule" at the bottom!</li>
+  </ol>
+</div>
+<br/>
+<hr>
 <br/>
   <div class="drawUI">
     <div class="palette">
@@ -21,6 +32,7 @@
   </div>
   <p id = "nameOutput"></p>
   <button type="button" onclick="test()" id="nameButton">Name My Molecule</button>
+  <p id="credits">Made by Joe Badlato. Find the source code <a href="https://github.com/jbadlato/OChemBuddy">here</a></p>
   <p id ="ochembuddy">OChem Buddy</p>
   <script type="text/javascript" src="script.js"></script>
   <script type="text/javascript" src="drawing.js"></script>
