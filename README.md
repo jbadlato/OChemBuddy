@@ -3,3 +3,5 @@ Molecule namer as a study aid for organic chemistry students.  Draw your molecul
 Currently only supports acyclic saturated hydrocarbons.
 
 Hosted on https://ochembuddy.herokuapp.com
+
+Built with pure JavaScript, HTML, and CSS.
