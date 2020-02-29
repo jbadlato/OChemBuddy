@@ -1,9 +1,10 @@
 import React from 'react';
+import { AppBody } from './view';
 
 function App() {
 	return (
 			<div className="App">
-				<iframe id="ifKetcher" title="ketcher" src="ketcher/ketcher.html" width="800" height="600"></iframe>
+				<AppBody />
 			</div>
 		);
 }
