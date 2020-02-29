@@ -24,7 +24,8 @@
     "test": "react-scripts test",
     "server": "node server.js",
     "prettier": "pretty-quick --staged --pattern \"src/**/*.*(js|jsx|ts|tsx)\"",
-    "prettier-check": "prettier --check \"src/**/*.*(js|jsx|ts|tsx)\""
+    "prettier-check": "prettier --check \"src/**/*.*(js|jsx|ts|tsx)\"",
+    "prettier-full": "prettier --write \"src/**/*.*(js|jsx|ts|tsx)\""
   },
   "browserslist": {
     "production": [
